@@ -7,18 +7,120 @@ import { detectDeviations, getCompanyProfile } from "../lib/deviations.js";
 import { analyzeDivergence } from "../lib/analyzeDivergence.js";
 
 export default async function handler(req, res) {
+  // Global CORS headers for cross-origin MCP client access
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization, Mcp-Session-Id, x-api-key");
+  res.setHeader("Access-Control-Max-Age", "86400");
+
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+
+  // Handle GET / HEAD: Server discovery, health inspection & browser navigation
+  if (req.method === "GET" || req.method === "HEAD") {
+    // If client specifically requests text/event-stream for SSE streaming
+    if (req.headers.accept?.includes("text/event-stream")) {
+      try {
+        const server = createMcpServer();
+        const transport = new StreamableHTTPServerTransport({
+          sessionIdGenerator: undefined,
+          enableJsonResponse: true
+        });
+        await server.connect(transport);
+        await transport.handleRequest(req, res);
+        return;
+      } catch (err) {
+        // Fall back to health JSON
+      }
+    }
+
+    res.status(200).json({
+      status: "healthy",
+      name: "alphapairs-server",
+      version: "1.0.0",
+      protocol: "mcp-streamable-http",
+      protocolVersion: "2025-11-25",
+      description: "Production Model Context Protocol (MCP) Server for AlphaPairs Quantitative Statistical Arbitrage & Equities Deviation Engine",
+      upstream: {
+        market_data: "Yahoo Finance Live Market Data API (dual query1/query2 failover)",
+        ai_engine: "Google Gemini 3.8 Flash API"
+      },
+      instructions: "To execute MCP tools or inspect capabilities, send HTTP POST requests with a JSON-RPC 2.0 payload to this endpoint.",
+      example_post_request: {
+        jsonrpc: "2.0",
+        id: "sample-1",
+        method: "tools/list",
+        params: {}
+      },
+      tools: [
+        {
+          name: "alphapairs_get_market_data",
+          description: "Returns up to 20 recent daily OHLCV bars per ticker for up to 20 US equity tickers from Yahoo Finance."
+        },
+        {
+          name: "alphapairs_calculate_correlation",
+          description: "Returns an N x N correlation matrix of continuous logarithmic returns for up to 15 equity tickers."
+        },
+        {
+          name: "alphapairs_detect_deviations",
+          description: "Returns residual spread tracking points, 20-day moving averages, and statistical divergence episodes for target vs peer basket."
+        },
+        {
+          name: "alphapairs_get_ticker_profile",
+          description: "Returns dynamic verified live company profile, name, sector, industry, and live price for any US equity ticker."
+        },
+        {
+          name: "alphapairs_analyze_divergence",
+          description: "Returns an institutional-grade quantitative research memo examining corporate catalysts and mean reversion via Gemini API."
+        }
+      ]
+    });
+    return;
+  }
+
+  // Reject unsupported HTTP verbs
   if (req.method !== "POST") {
     res.status(405).json({
       jsonrpc: "2.0",
-      error: { code: -32000, message: "Method not allowed" },
+      error: { code: -32000, message: `Method ${req.method} not allowed. Send POST with JSON-RPC 2.0 payload.` },
       id: null
     });
     return;
   }
 
+  // Parse body if received as string or buffer
+  let parsedBody = req.body;
+  if (typeof parsedBody === "string") {
+    try {
+      parsedBody = JSON.parse(parsedBody);
+    } catch {
+      res.status(400).json({
+        jsonrpc: "2.0",
+        error: { code: -32700, message: "Parse error: Request body must be valid JSON" },
+        id: null
+      });
+      return;
+    }
+  }
+
   // Ensure Streamable HTTP transport receives both required media types
   req.headers.accept = "application/json, text/event-stream";
 
+  const server = createMcpServer();
+
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true
+  });
+
+  await server.connect(transport);
+  await transport.handleRequest(req, res, parsedBody);
+}
+
+function createMcpServer() {
   const server = new McpServer({
     name: "alphapairs-server",
     version: "1.0.0"
@@ -110,7 +212,7 @@ export default async function handler(req, res) {
   server.registerTool(
     "alphapairs_detect_deviations",
     {
-      description: "Returns up to 20 residual spread tracking points and detected statistical divergence episodes where a target ticker deviates from its peer group benchmark. Data is calculated via ordinary least squares regression from price series retrieved from the Yahoo Finance Market Data API. Use this tool to identify abnormal valuation dislocations and mean-reversion opportunities based on Z-score thresholds. It does not forecast future price direction or generate automated trade execution orders.",
+      description: "Returns up to 20 residual spread tracking points, 20-day moving averages, and detected statistical divergence episodes where a target ticker deviates from its peer group benchmark. Data is calculated via ordinary least squares regression from price series retrieved from the Yahoo Finance Market Data API. Use this tool to identify abnormal valuation dislocations and mean-reversion opportunities based on Z-score thresholds. It does not forecast future price direction or generate automated trade execution orders.",
       inputSchema: {
         target: z.string().min(1).max(10).toUpperCase()
           .describe("Target US equity ticker symbol to monitor for deviation, e.g. 'NVDA' or 'VRT'"),
@@ -245,11 +347,5 @@ export default async function handler(req, res) {
     }
   );
 
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-    enableJsonResponse: true
-  });
-
-  await server.connect(transport);
-  await transport.handleRequest(req, res, req.body);
+  return server;
 }
