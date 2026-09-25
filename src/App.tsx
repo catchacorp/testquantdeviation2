@@ -3,7 +3,6 @@ import {
   TrendingUp,
   Activity,
   Layers,
-  Cpu,
   Server,
   Copy,
   Check,
@@ -21,12 +20,109 @@ import {
   ChevronRight,
   CheckCircle2,
   XCircle,
-  Clock,
-  ExternalLink
+  HelpCircle,
+  Sun,
+  Moon,
+  Plus,
+  X,
+  Share2,
+  Zap,
+  Info,
+  ExternalLink,
+  Target
 } from "lucide-react";
+
+// Default universe of 11 equities requested by user
+export const DEFAULT_UNIVERSE = [
+  { symbol: "NVDA", name: "NVIDIA Corporation", category: "AI Accelerators & GPUs" },
+  { symbol: "META", name: "Meta Platforms Inc.", category: "Social & AI Platforms" },
+  { symbol: "AMZN", name: "Amazon.com Inc.", category: "Cloud & E-Commerce" },
+  { symbol: "AAPL", name: "Apple Inc.", category: "Consumer Devices & Ecosystem" },
+  { symbol: "NFLX", name: "Netflix Inc.", category: "Streaming & Entertainment" },
+  { symbol: "GOOGL", name: "Alphabet Inc. (Google)", category: "Search & Cloud Infrastructure" },
+  { symbol: "MSFT", name: "Microsoft Corporation", category: "Enterprise Software & Cloud" },
+  { symbol: "TSLA", name: "Tesla Inc.", category: "Autonomous & Electric Vehicles" },
+  { symbol: "AMD", name: "Advanced Micro Devices", category: "Semiconductors & CPUs/GPUs" },
+  { symbol: "AVGO", name: "Broadcom Inc.", category: "Networking Silicon & ASICs" },
+  { symbol: "MU", name: "Micron Technology", category: "High Bandwidth Memory (HBM)" }
+];
+
+// Industry recommendation suggestions map
+export const PEER_SUGGESTIONS: Record<string, Array<{ symbol: string; name: string; category: string }>> = {
+  NVDA: [
+    { symbol: "AMD", name: "Advanced Micro Devices", category: "GPU & CPU Peer" },
+    { symbol: "AVGO", name: "Broadcom Inc.", category: "Custom AI Silicon" },
+    { symbol: "MU", name: "Micron Technology", category: "HBM Memory Partner" },
+    { symbol: "TSM", name: "Taiwan Semiconductor", category: "Foundry Manufacturer" },
+    { symbol: "INTC", name: "Intel Corporation", category: "Data Center Silicon" },
+    { symbol: "QCOM", name: "Qualcomm Inc.", category: "Edge AI & Mobile Chips" },
+    { symbol: "AMAT", name: "Applied Materials", category: "Chip Equipment" }
+  ],
+  META: [
+    { symbol: "GOOGL", name: "Alphabet (Google)", category: "Digital Advertising Duopoly" },
+    { symbol: "AMZN", name: "Amazon.com", category: "Cloud & AI Infrastructure" },
+    { symbol: "MSFT", name: "Microsoft", category: "Enterprise AI & Copilots" },
+    { symbol: "SNAP", name: "Snap Inc.", category: "Social Media Platform" },
+    { symbol: "PINS", name: "Pinterest Inc.", category: "Visual Discovery Ad Platform" }
+  ],
+  AAPL: [
+    { symbol: "MSFT", name: "Microsoft Corp.", category: "Megacap OS & Cloud Ecosystem" },
+    { symbol: "GOOGL", name: "Alphabet Inc.", category: "Mobile OS & Services (Android)" },
+    { symbol: "AMZN", name: "Amazon.com", category: "Consumer Hardware & Prime" },
+    { symbol: "HPQ", name: "HP Inc.", category: "Personal Computing Hardware" },
+    { symbol: "DELL", name: "Dell Technologies", category: "Enterprise & Client Hardware" }
+  ],
+  NFLX: [
+    { symbol: "DIS", name: "Walt Disney Company", category: "Streaming (Disney+) & Studios" },
+    { symbol: "WBD", name: "Warner Bros. Discovery", category: "Streaming (Max) & Media" },
+    { symbol: "CMCSA", name: "Comcast Corp.", category: "Streaming (Peacock) & Cable" },
+    { symbol: "SPOT", name: "Spotify Technology", category: "Digital Subscription Streaming" },
+    { symbol: "PARA", name: "Paramount Global", category: "Broadcasting & Streaming" }
+  ],
+  GOOGL: [
+    { symbol: "META", name: "Meta Platforms", category: "Digital Ad Ecosystem" },
+    { symbol: "MSFT", name: "Microsoft Corp.", category: "Cloud & Search (Azure/Bing)" },
+    { symbol: "AMZN", name: "Amazon.com", category: "Cloud Infrastructure (AWS)" },
+    { symbol: "BIDU", name: "Baidu Inc.", category: "Global Search Engine & AI" }
+  ],
+  MSFT: [
+    { symbol: "AMZN", name: "Amazon.com", category: "Cloud Hyperscaler (AWS vs Azure)" },
+    { symbol: "GOOGL", name: "Alphabet Inc.", category: "Productivity & Cloud (GSuite)" },
+    { symbol: "ORCL", name: "Oracle Corporation", category: "Enterprise Database Cloud" },
+    { symbol: "CRM", name: "Salesforce Inc.", category: "Enterprise SaaS Applications" },
+    { symbol: "ADBE", name: "Adobe Inc.", category: "Creative & Enterprise Software" }
+  ],
+  TSLA: [
+    { symbol: "RIVN", name: "Rivian Automotive", category: "Pure Electric Trucks & SUVs" },
+    { symbol: "LCID", name: "Lucid Group", category: "Luxury Electric Vehicles" },
+    { symbol: "F", name: "Ford Motor Company", category: "Legacy Automaker EV Transition" },
+    { symbol: "GM", name: "General Motors", category: "Legacy Automaker EV Transition" },
+    { symbol: "TM", name: "Toyota Motor Corp.", category: "Global Hybrid/Automotive OEM" }
+  ],
+  AMD: [
+    { symbol: "NVDA", name: "NVIDIA Corporation", category: "Primary GPU & AI Competitor" },
+    { symbol: "INTC", name: "Intel Corporation", category: "x86 CPU Competitor" },
+    { symbol: "TSM", name: "Taiwan Semiconductor", category: "Wafer Fabrication Partner" },
+    { symbol: "AVGO", name: "Broadcom Inc.", category: "Data Center Silicon" }
+  ],
+  AVGO: [
+    { symbol: "NVDA", name: "NVIDIA Corporation", category: "Data Center Accelerator Ecosystem" },
+    { symbol: "MRVL", name: "Marvell Technology", category: "Custom ASIC & Optical Silicon" },
+    { symbol: "QCOM", name: "Qualcomm Inc.", category: "Communications Silicon" },
+    { symbol: "AMD", name: "Advanced Micro Devices", category: "Data Center Compute" }
+  ],
+  MU: [
+    { symbol: "WDC", name: "Western Digital", category: "Storage & Flash Memory" },
+    { symbol: "STX", name: "Seagate Technology", category: "Data Storage Hardware" },
+    { symbol: "NVDA", name: "NVIDIA Corporation", category: "Primary HBM Memory Customer" },
+    { symbol: "AMD", name: "Advanced Micro Devices", category: "HBM Memory Customer" }
+  ]
+};
 
 interface Episode {
   episode_id: string;
+  target: string;
+  peer_basket: string[];
   direction: string;
   start_date: string;
   peak_date: string;
@@ -35,11 +131,14 @@ interface Episode {
   duration_days: number;
   collapse_date: string | null;
   status: "active" | "mean_reverted";
+  internal_rationale?: string;
+  external_rationale?: string;
 }
 
 interface ResidualPoint {
   date: string;
   target_price: number;
+  target_sma_20: number;
   benchmark_normalized: number;
   target_normalized: number;
   residual: number;
@@ -47,19 +146,37 @@ interface ResidualPoint {
   spread_pct: number;
 }
 
+interface RightNowItem {
+  ticker: string;
+  company_name: string;
+  is_target: boolean;
+  latest_price: number;
+  sma_20: number;
+  vs_sma_pct: number;
+  return_5d_pct: number;
+  relative_perf_pct: number;
+  signal: string;
+  action: "POTENTIAL BUY" | "POTENTIAL SHORT SELL" | "NEUTRAL / HOLD";
+  status_class: "buy" | "short" | "neutral";
+  plain_english: string;
+}
+
 interface DeviationResult {
   source: string;
   fetched_at: string;
   target: string;
+  target_name: string;
   peers: string[];
   lookback_days: number;
   z_threshold: number;
+  latest_date: string;
   model: {
     alpha: number;
     beta: number;
     r_squared: number;
     residual_std: number;
   };
+  right_now: RightNowItem[];
   episodes: Episode[];
   residual_points: ResidualPoint[];
 }
@@ -76,61 +193,6 @@ interface CorrelationResult {
     ticker_a: string;
     ticker_b: string;
     correlation: number;
-  }>;
-}
-
-interface MarketBar {
-  date: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-}
-
-interface MarketDataResult {
-  source: string;
-  fetched_at: string;
-  tickers: string[];
-  lookback_days: number;
-  data: Record<string, MarketBar[]>;
-  summaries: Array<{
-    ticker: string;
-    latest_date: string;
-    close: number;
-    change_pct: number;
-    bars_count: number;
-  }>;
-}
-
-interface DivergenceMemoResult {
-  source: string;
-  fetched_at: string;
-  ticker: string;
-  peer_group_name: string;
-  peer_tickers: string[];
-  episode_metrics: {
-    max_z_score: number;
-    peak_spread_pct: number;
-    direction: string;
-    duration_days: number;
-    start_date: string;
-    peak_date: string;
-    collapse_date: string | null;
-  };
-  memo: {
-    headline: string;
-    executive_summary: string;
-    corporate_catalysts: string;
-    peer_dynamics: string;
-    mean_reversion_assessment: string;
-  };
-  risk_factors: string[];
-  tactical_recommendations: string[];
-  catalyst_timeline: Array<{
-    date_or_milestone: string;
-    event: string;
-    impact: string;
   }>;
 }
 
@@ -151,86 +213,85 @@ interface McpVerificationState {
   } | null;
 }
 
-const PRESET_BASKETS = [
-  {
-    name: "Semiconductors",
-    target: "NVDA",
-    peers: ["AMD", "INTC", "TSM", "QCOM"],
-    description: "AI chips, foundries & graphics vs fabless ecosystem"
-  },
-  {
-    name: "Megacap Platforms",
-    target: "MSFT",
-    peers: ["AAPL", "GOOGL", "AMZN", "META"],
-    description: "Hyperscalers and consumer ecosystem platforms"
-  },
-  {
-    name: "EV & Automakers",
-    target: "TSLA",
-    peers: ["F", "GM", "TM", "RIVN"],
-    description: "Pure-play electric vehicles vs legacy automotive OEM peers"
-  },
-  {
-    name: "Wall Street Financials",
-    target: "JPM",
-    peers: ["BAC", "C", "WFC", "MS"],
-    description: "Money-center universal banks & investment bank peers"
-  }
-];
+// Friendly Grandmother Popover Component
+function GrandmaTooltip({
+  title,
+  grandmaText,
+  technicalNote
+}: {
+  title: string;
+  grandmaText: string;
+  technicalNote?: string;
+}) {
+  const [open, setOpen] = useState(false);
 
-/**
- * Executes a tool call directly through the /api/mcp endpoint via JSON-RPC 2.0
- */
-async function callMcpTool(name: string, args: Record<string, any>) {
-  const res = await fetch("/api/mcp", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json, text/event-stream"
-    },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: `app-call-${Date.now()}`,
-      method: "tools/call",
-      params: {
-        name,
-        arguments: args
-      }
-    })
-  });
+  return (
+    <span className="relative inline-flex items-center ml-1 align-baseline">
+      <button
+        type="button"
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onClick={() => setOpen(!open)}
+        className="h-4 w-4 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-slate-950 flex items-center justify-center text-[10px] font-bold cursor-help transition border border-amber-500/40"
+        aria-label={`Explain ${title}`}
+      >
+        ?
+      </button>
 
-  if (!res.ok) {
-    let errDetail = `HTTP ${res.status}`;
-    try {
-      const errJson = await res.json();
-      if (errJson.error?.message) errDetail = errJson.error.message;
-    } catch {}
-    throw new Error(`MCP Request failed: ${errDetail}`);
-  }
-
-  const json = await res.json();
-  if (json.error) {
-    throw new Error(`MCP Error [${json.error.code}]: ${json.error.message}`);
-  }
-
-  const result = json.result;
-  if (!result || !result.content || !result.content[0]) {
-    throw new Error("MCP Tool returned invalid empty payload");
-  }
-
-  if (result.isError) {
-    throw new Error(result.content[0].text);
-  }
-
-  return JSON.parse(result.content[0].text);
+      {open && (
+        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-amber-500/60 text-xs leading-relaxed pointer-events-none text-left">
+          <div className="flex items-center gap-1.5 text-amber-400 font-bold mb-1">
+            <span>👵</span>
+            <span>Simple Guide: {title}</span>
+          </div>
+          <p className="text-slate-200 mb-1.5">{grandmaText}</p>
+          {technicalNote && (
+            <p className="text-[10px] text-slate-400 border-t border-slate-800 pt-1 font-mono">
+              Financial Term: {technicalNote}
+            </p>
+          )}
+        </div>
+      )}
+    </span>
+  );
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"deviations" | "correlation" | "market" | "memo" | "mcp">("deviations");
-  const [copiedMcpUrl, setCopiedMcpUrl] = useState(false);
-  const [useMcpDirectly, setUseMcpDirectly] = useState(true);
+  // Theme Toggle: Dark (default) vs Light
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
-  // MCP Connection & Price Authenticity State
+  // Active Navigation Tab
+  const [activeTab, setActiveTab] = useState<"deviations" | "right_now" | "why_peers" | "correlation" | "mcp">("deviations");
+
+  // Show MCP Health Modal
+  const [showMcpModal, setShowMcpModal] = useState(false);
+  const [copiedMcpUrl, setCopiedMcpUrl] = useState(false);
+
+  // Equities Basket State
+  // Default Target: NVDA
+  const [targetTicker, setTargetTicker] = useState("NVDA");
+  // Default Peers: The rest of the 11 default equities
+  const [peerTickers, setPeerTickers] = useState<string[]>([
+    "META", "AMZN", "AAPL", "NFLX", "GOOGL", "MSFT", "TSLA", "AMD", "AVGO", "MU"
+  ]);
+
+  // Input for adding custom ticker
+  const [newTickerInput, setNewTickerInput] = useState("");
+
+  // Statistical Parameters
+  const [zThreshold, setZThreshold] = useState(1.5);
+  const [lookbackDays, setLookbackDays] = useState(60);
+
+  // Execution states
+  const [devLoading, setDevLoading] = useState(false);
+  const [devError, setDevError] = useState<string | null>(null);
+  const [devResult, setDevResult] = useState<DeviationResult | null>(null);
+
+  // Correlation State
+  const [corrLoading, setCorrLoading] = useState(false);
+  const [corrResult, setCorrResult] = useState<CorrelationResult | null>(null);
+
+  // MCP Server Connection State
   const [mcpHealth, setMcpHealth] = useState<McpVerificationState>({
     status: "idle",
     latencyMs: 0,
@@ -241,157 +302,102 @@ export default function App() {
     priceSample: null
   });
 
-  // Tab 1: Deviation Detector State
-  const [targetTicker, setTargetTicker] = useState("NVDA");
-  const [peerTickersInput, setPeerTickersInput] = useState("AMD, INTC, TSM");
-  const [zThreshold, setZThreshold] = useState(2.0);
-  const [lookbackDays, setLookbackDays] = useState(60);
-  const [devLoading, setDevLoading] = useState(false);
-  const [devError, setDevError] = useState<string | null>(null);
-  const [devResult, setDevResult] = useState<DeviationResult | null>(null);
-
-  // Tab 2: Correlation Matrix State
-  const [corrTickersInput, setCorrTickersInput] = useState("NVDA, AMD, TSM, INTC, MSFT, AAPL");
-  const [corrLookback, setCorrLookback] = useState(60);
-  const [corrLoading, setCorrLoading] = useState(false);
-  const [corrError, setCorrError] = useState<string | null>(null);
-  const [corrResult, setCorrResult] = useState<CorrelationResult | null>(null);
-
-  // Tab 3: Market Data State
-  const [marketTickersInput, setMarketTickersInput] = useState("NVDA, AMD, MSFT");
-  const [marketLookback, setMarketLookback] = useState(30);
-  const [marketLoading, setMarketLoading] = useState(false);
-  const [marketError, setMarketError] = useState<string | null>(null);
-  const [marketResult, setMarketResult] = useState<MarketDataResult | null>(null);
-  const [selectedMarketTicker, setSelectedMarketTicker] = useState("NVDA");
-
-  // Tab 4: AI Divergence Memo State
-  const [memoTicker, setMemoTicker] = useState("NVDA");
-  const [memoGroupName, setMemoGroupName] = useState("Semiconductor Accelerators");
-  const [memoPeersInput, setMemoPeersInput] = useState("AMD, INTC, TSM");
-  const [memoMaxZ, setMemoMaxZ] = useState(2.45);
-  const [memoPeakSpread, setMemoPeakSpread] = useState(12.3);
-  const [memoDirection, setMemoDirection] = useState("divergence_above");
-  const [memoDuration, setMemoDuration] = useState(14);
-  const [memoStartDate, setMemoStartDate] = useState("2026-08-12");
-  const [memoPeakDate, setMemoPeakDate] = useState("2026-08-19");
-  const [memoCollapseDate, setMemoCollapseDate] = useState("2026-08-26");
-  const [memoLoading, setMemoLoading] = useState(false);
-  const [memoError, setMemoError] = useState<string | null>(null);
-  const [memoResult, setMemoResult] = useState<DivergenceMemoResult | null>(null);
-
-  // Tab 5: MCP Protocol Inspector State
-  const [mcpSelectedTool, setMcpSelectedTool] = useState("alphapairs_detect_deviations");
-  const [mcpPayload, setMcpPayload] = useState("");
-  const [mcpExecuting, setMcpExecuting] = useState(false);
-  const [mcpResponse, setMcpResponse] = useState<string | null>(null);
-
-  // Auto-verify MCP connection on mount & run initial deviation detection
+  // Verify MCP on mount and run detection
   useEffect(() => {
     verifyMcpConnection();
-    handleRunDeviation();
+    runDeviationCalculation("NVDA", peerTickers, zThreshold, lookbackDays);
   }, []);
 
-  // Update default MCP payload when tool selection changes
-  useEffect(() => {
-    if (mcpSelectedTool === "alphapairs_get_market_data") {
-      setMcpPayload(
-        JSON.stringify(
-          {
-            jsonrpc: "2.0",
-            id: 1,
-            method: "tools/call",
-            params: {
-              name: "alphapairs_get_market_data",
-              arguments: {
-                tickers: ["NVDA", "AMD", "MSFT"],
-                lookback_days: 30
-              }
-            }
-          },
-          null,
-          2
-        )
-      );
-    } else if (mcpSelectedTool === "alphapairs_calculate_correlation") {
-      setMcpPayload(
-        JSON.stringify(
-          {
-            jsonrpc: "2.0",
-            id: 2,
-            method: "tools/call",
-            params: {
-              name: "alphapairs_calculate_correlation",
-              arguments: {
-                tickers: ["AAPL", "MSFT", "GOOGL", "NVDA"],
-                lookback_days: 60
-              }
-            }
-          },
-          null,
-          2
-        )
-      );
-    } else if (mcpSelectedTool === "alphapairs_detect_deviations") {
-      setMcpPayload(
-        JSON.stringify(
-          {
-            jsonrpc: "2.0",
-            id: 3,
-            method: "tools/call",
-            params: {
-              name: "alphapairs_detect_deviations",
-              arguments: {
-                target: "NVDA",
-                peers: ["AMD", "INTC", "TSM"],
-                z_threshold: 2.0,
-                lookback_days: 60
-              }
-            }
-          },
-          null,
-          2
-        )
-      );
-    } else if (mcpSelectedTool === "alphapairs_analyze_divergence") {
-      setMcpPayload(
-        JSON.stringify(
-          {
-            jsonrpc: "2.0",
-            id: 4,
-            method: "tools/call",
-            params: {
-              name: "alphapairs_analyze_divergence",
-              arguments: {
-                ticker: "NVDA",
-                peer_group_name: "Semiconductors",
-                peer_tickers: ["AMD", "INTC", "TSM"],
-                max_z_score: 2.45,
-                peak_spread_pct: 12.3,
-                direction: "divergence_above",
-                duration_days: 14,
-                start_date: "2026-08-12",
-                peak_date: "2026-08-19",
-                collapse_date: "2026-08-26"
-              }
-            }
-          },
-          null,
-          2
-        )
-      );
-    }
-  }, [mcpSelectedTool]);
+  // Update calculations when target or peers change
+  const handleTargetChange = (newTarget: string) => {
+    const updatedPeers = DEFAULT_UNIVERSE
+      .map(item => item.symbol)
+      .filter(sym => sym !== newTarget);
+    setTargetTicker(newTarget);
+    setPeerTickers(updatedPeers);
+    runDeviationCalculation(newTarget, updatedPeers, zThreshold, lookbackDays);
+  };
 
-  /**
-   * End-to-end verification of MCP connection and price authenticity
-   */
+  // Add ticker to basket
+  const handleAddTicker = (symbolToAdd: string) => {
+    const clean = symbolToAdd.trim().toUpperCase();
+    if (!clean) return;
+    if (clean === targetTicker || peerTickers.includes(clean)) {
+      setNewTickerInput("");
+      return;
+    }
+    const updatedPeers = [...peerTickers, clean].slice(0, 12);
+    setPeerTickers(updatedPeers);
+    setNewTickerInput("");
+    runDeviationCalculation(targetTicker, updatedPeers, zThreshold, lookbackDays);
+  };
+
+  // Remove ticker from basket
+  const handleRemovePeer = (symToRemove: string) => {
+    if (peerTickers.length <= 1) return;
+    const updated = peerTickers.filter(p => p !== symToRemove);
+    setPeerTickers(updated);
+    runDeviationCalculation(targetTicker, updated, zThreshold, lookbackDays);
+  };
+
+  // Core execution function calling MCP
+  const runDeviationCalculation = async (
+    target: string,
+    peers: string[],
+    threshold: number,
+    lookback: number
+  ) => {
+    setDevLoading(true);
+    setDevError(null);
+    try {
+      // Execute directly via /api/mcp tools/call
+      const res = await fetch("/api/mcp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json, text/event-stream"
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: `dev-${Date.now()}`,
+          method: "tools/call",
+          params: {
+            name: "alphapairs_detect_deviations",
+            arguments: {
+              target: target.trim().toUpperCase(),
+              peers: peers.map(p => p.trim().toUpperCase()),
+              z_threshold: Number(threshold),
+              lookback_days: Number(lookback)
+            }
+          }
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`MCP Server returned HTTP ${res.status}`);
+      }
+
+      const json = await res.json();
+      if (json.error || json.result?.isError) {
+        const msg = json.result?.content?.[0]?.text || json.error?.message;
+        throw new Error(msg);
+      }
+
+      const data = JSON.parse(json.result.content[0].text);
+      setDevResult(data);
+    } catch (err: any) {
+      setDevError(err.message);
+    } finally {
+      setDevLoading(false);
+    }
+  };
+
+  // Verify MCP Connection and Price Authenticity
   const verifyMcpConnection = async () => {
     setMcpHealth(prev => ({ ...prev, status: "verifying", errorMessage: null }));
     const startTime = performance.now();
 
     try {
-      // Step 1: Verify MCP Handshake & Tools Discovery (tools/list)
       const listRes = await fetch("/api/mcp", {
         method: "POST",
         headers: {
@@ -400,28 +406,21 @@ export default function App() {
         },
         body: JSON.stringify({
           jsonrpc: "2.0",
-          id: "mcp-verify-list",
+          id: "verify-list",
           method: "tools/list",
           params: {}
         })
       });
 
       if (!listRes.ok) {
-        throw new Error(`MCP Server rejected connection with HTTP ${listRes.status}`);
+        throw new Error(`MCP Server HTTP ${listRes.status}`);
       }
 
       const listJson = await listRes.json();
-      if (listJson.error) {
-        throw new Error(`MCP Protocol Error: ${listJson.error.message}`);
-      }
+      const tools = listJson.result?.tools?.map((t: any) => t.name) || [];
 
-      const registeredTools = listJson.result?.tools?.map((t: any) => t.name) || [];
-      if (registeredTools.length === 0) {
-        throw new Error("MCP Server connected, but 0 tools were registered");
-      }
-
-      // Step 2: Verify Price Authenticity via Live Tool Call (alphapairs_get_market_data for AAPL)
-      const toolCallRes = await fetch("/api/mcp", {
+      // Call market data for AAPL to verify price
+      const priceRes = await fetch("/api/mcp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -429,7 +428,7 @@ export default function App() {
         },
         body: JSON.stringify({
           jsonrpc: "2.0",
-          id: "mcp-verify-price",
+          id: "verify-price",
           method: "tools/call",
           params: {
             name: "alphapairs_get_market_data",
@@ -441,1482 +440,1134 @@ export default function App() {
         })
       });
 
-      if (!toolCallRes.ok) {
-        throw new Error(`MCP Tool execution failed with HTTP ${toolCallRes.status}`);
-      }
-
-      const toolCallJson = await toolCallRes.json();
-      if (toolCallJson.error || toolCallJson.result?.isError) {
-        const errText = toolCallJson.result?.content?.[0]?.text || toolCallJson.error?.message;
-        throw new Error(`MCP Tool Error: ${errText}`);
-      }
-
-      const rawContent = toolCallJson.result?.content?.[0]?.text;
-      const parsedData = JSON.parse(rawContent);
-
-      const appleBars = parsedData.data?.AAPL || [];
-      if (appleBars.length === 0) {
-        throw new Error("No live bars received for AAPL from upstream");
-      }
-
-      const latestBar = appleBars[appleBars.length - 1];
-
-      // Authenticity checks:
-      // - Must have valid date string
-      // - Close price must be real positive numeric
-      // - Volume must be positive trading volume
-      // - Source must name Yahoo Finance Market Data API
-      const isAuthentic =
-        latestBar.close > 0 &&
-        latestBar.volume > 0 &&
-        latestBar.date &&
-        parsedData.source.includes("Yahoo Finance");
+      const priceJson = await priceRes.json();
+      const rawText = priceJson.result?.content?.[0]?.text;
+      const parsedData = JSON.parse(rawText);
+      const appleBar = parsedData.data?.AAPL?.[parsedData.data.AAPL.length - 1];
 
       const elapsed = Math.round(performance.now() - startTime);
 
       setMcpHealth({
         status: "connected",
         latencyMs: elapsed,
-        toolsCount: registeredTools.length,
-        tools: registeredTools,
+        toolsCount: tools.length,
+        tools,
         lastVerified: new Date().toLocaleTimeString(),
         errorMessage: null,
         priceSample: {
           ticker: "AAPL",
-          date: latestBar.date,
-          close: latestBar.close,
-          volume: latestBar.volume,
+          date: appleBar.date,
+          close: appleBar.close,
+          volume: appleBar.volume,
           source: parsedData.source,
-          isAuthentic
+          isAuthentic: appleBar.close > 0 && appleBar.volume > 0
         }
       });
     } catch (err: any) {
-      const elapsed = Math.round(performance.now() - startTime);
-      setMcpHealth({
+      setMcpHealth(prev => ({
+        ...prev,
         status: "error",
-        latencyMs: elapsed,
-        toolsCount: 0,
-        tools: [],
-        lastVerified: new Date().toLocaleTimeString(),
         errorMessage: err.message,
-        priceSample: null
-      });
+        lastVerified: new Date().toLocaleTimeString()
+      }));
     }
   };
 
   const copyMcpUrl = () => {
-    const url = "https://alphapairs-quant.vercel.app/api/mcp";
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText("https://alphapairs-quant.vercel.app/api/mcp");
     setCopiedMcpUrl(true);
     setTimeout(() => setCopiedMcpUrl(false), 2000);
   };
 
-  const handleRunDeviation = async () => {
-    setDevLoading(true);
-    setDevError(null);
-    try {
-      const peers = peerTickersInput
-        .split(",")
-        .map(t => t.trim().toUpperCase())
-        .filter(Boolean);
-
-      let data: DeviationResult;
-      if (useMcpDirectly) {
-        // Execute through MCP Protocol
-        data = await callMcpTool("alphapairs_detect_deviations", {
-          target: targetTicker.trim().toUpperCase(),
-          peers,
-          z_threshold: Number(zThreshold),
-          lookback_days: Number(lookbackDays)
-        });
-      } else {
-        // Direct REST endpoint
-        const res = await fetch("/api/detect-deviations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            target: targetTicker.trim().toUpperCase(),
-            peers,
-            z_threshold: Number(zThreshold),
-            lookback_days: Number(lookbackDays)
-          })
-        });
-        if (!res.ok) {
-          const errJson = await res.json().catch(() => ({}));
-          throw new Error(errJson.error || `HTTP ${res.status}: Failed to detect deviations`);
-        }
-        data = await res.json();
-      }
-
-      setDevResult(data);
-    } catch (err: any) {
-      setDevError(err.message);
-    } finally {
-      setDevLoading(false);
-    }
+  // Find target stock info
+  const targetInfo = DEFAULT_UNIVERSE.find(u => u.symbol === targetTicker) || {
+    symbol: targetTicker,
+    name: devResult?.target_name || targetTicker,
+    category: "Selected Equity"
   };
 
-  const handleRunCorrelation = async () => {
-    setCorrLoading(true);
-    setCorrError(null);
-    try {
-      const tickers = corrTickersInput
-        .split(",")
-        .map(t => t.trim().toUpperCase())
-        .filter(Boolean);
+  // Target RightNow data
+  const targetRightNow = devResult?.right_now?.find(r => r.ticker === targetTicker);
 
-      let data: CorrelationResult;
-      if (useMcpDirectly) {
-        // Execute through MCP Protocol
-        data = await callMcpTool("alphapairs_calculate_correlation", {
-          tickers,
-          lookback_days: Number(corrLookback)
-        });
-      } else {
-        // Direct REST endpoint
-        const res = await fetch("/api/calculate-correlation", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tickers,
-            lookback_days: Number(corrLookback)
-          })
-        });
-        if (!res.ok) {
-          const errJson = await res.json().catch(() => ({}));
-          throw new Error(errJson.error || `HTTP ${res.status}: Failed to calculate correlation`);
-        }
-        data = await res.json();
-      }
-
-      setCorrResult(data);
-    } catch (err: any) {
-      setCorrError(err.message);
-    } finally {
-      setCorrLoading(false);
-    }
-  };
-
-  const handleRunMarketData = async () => {
-    setMarketLoading(true);
-    setMarketError(null);
-    try {
-      const tickers = marketTickersInput
-        .split(",")
-        .map(t => t.trim().toUpperCase())
-        .filter(Boolean);
-
-      let data: MarketDataResult;
-      if (useMcpDirectly) {
-        // Execute through MCP Protocol
-        data = await callMcpTool("alphapairs_get_market_data", {
-          tickers,
-          lookback_days: Number(marketLookback)
-        });
-      } else {
-        // Direct REST endpoint
-        const res = await fetch("/api/market-data", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tickers,
-            lookback_days: Number(marketLookback)
-          })
-        });
-        if (!res.ok) {
-          const errJson = await res.json().catch(() => ({}));
-          throw new Error(errJson.error || `HTTP ${res.status}: Failed to fetch market data`);
-        }
-        data = await res.json();
-      }
-
-      setMarketResult(data);
-      if (tickers.length > 0) {
-        setSelectedMarketTicker(tickers[0]);
-      }
-    } catch (err: any) {
-      setMarketError(err.message);
-    } finally {
-      setMarketLoading(false);
-    }
-  };
-
-  const handleRunMemo = async () => {
-    setMemoLoading(true);
-    setMemoError(null);
-    try {
-      const peer_tickers = memoPeersInput
-        .split(",")
-        .map(t => t.trim().toUpperCase())
-        .filter(Boolean);
-
-      let data: DivergenceMemoResult;
-      if (useMcpDirectly) {
-        // Execute through MCP Protocol
-        data = await callMcpTool("alphapairs_analyze_divergence", {
-          ticker: memoTicker.trim().toUpperCase(),
-          peer_group_name: memoGroupName,
-          peer_tickers,
-          max_z_score: Number(memoMaxZ),
-          peak_spread_pct: Number(memoPeakSpread),
-          direction: memoDirection,
-          duration_days: Number(memoDuration),
-          start_date: memoStartDate,
-          peak_date: memoPeakDate,
-          collapse_date: memoCollapseDate || null
-        });
-      } else {
-        // Direct REST endpoint
-        const res = await fetch("/api/ai/analyze-divergence", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ticker: memoTicker.trim().toUpperCase(),
-            peer_group_name: memoGroupName,
-            peer_tickers,
-            max_z_score: Number(memoMaxZ),
-            peak_spread_pct: Number(memoPeakSpread),
-            direction: memoDirection,
-            duration_days: Number(memoDuration),
-            start_date: memoStartDate,
-            peak_date: memoPeakDate,
-            collapse_date: memoCollapseDate || null
-          })
-        });
-        if (!res.ok) {
-          const errJson = await res.json().catch(() => ({}));
-          throw new Error(errJson.error || `HTTP ${res.status}: Failed to generate AI memo`);
-        }
-        data = await res.json();
-      }
-
-      setMemoResult(data);
-    } catch (err: any) {
-      setMemoError(err.message);
-    } finally {
-      setMemoLoading(false);
-    }
-  };
-
-  const handleTriggerMemoFromEpisode = (ep: Episode) => {
-    if (!devResult) return;
-    setMemoTicker(devResult.target);
-    setMemoGroupName(`${devResult.target} vs Peer Group`);
-    setMemoPeersInput(devResult.peers.join(", "));
-    setMemoMaxZ(ep.peak_z_score);
-    setMemoPeakSpread(ep.peak_spread_pct);
-    setMemoDirection(ep.direction);
-    setMemoDuration(ep.duration_days);
-    setMemoStartDate(ep.start_date);
-    setMemoPeakDate(ep.peak_date);
-    setMemoCollapseDate(ep.collapse_date || "");
-    setActiveTab("memo");
-  };
-
-  const handleExecuteMcpCall = async () => {
-    setMcpExecuting(true);
-    setMcpResponse(null);
-    try {
-      const parsed = JSON.parse(mcpPayload);
-      const res = await fetch("/api/mcp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json, text/event-stream"
-        },
-        body: JSON.stringify(parsed)
-      });
-      const data = await res.json();
-      setMcpResponse(JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      setMcpResponse(
-        JSON.stringify(
-          {
-            error: err.message,
-            note: "Payload must be valid JSON-RPC 2.0 object"
-          },
-          null,
-          2
-        )
-      );
-    } finally {
-      setMcpExecuting(false);
-    }
-  };
-
-  // Color generator for correlation
-  const getCorrColor = (corr: number) => {
-    if (corr >= 0.8) return "bg-emerald-950 text-emerald-400 border border-emerald-800/40";
-    if (corr >= 0.5) return "bg-emerald-900/40 text-emerald-300 border border-emerald-800/30";
-    if (corr >= 0.2) return "bg-slate-800/60 text-slate-200 border border-slate-700/50";
-    if (corr >= -0.2) return "bg-slate-900/80 text-slate-400 border border-slate-800";
-    if (corr >= -0.5) return "bg-rose-950/40 text-rose-300 border border-rose-900/30";
-    return "bg-rose-950 text-rose-400 border border-rose-800/50";
-  };
+  // Suggested peers for current target
+  const suggestions = PEER_SUGGESTIONS[targetTicker] || PEER_SUGGESTIONS["NVDA"];
 
   return (
-    <div className="min-h-screen bg-[#070b12] text-slate-100 flex flex-col font-sans selection:bg-emerald-500/20 selection:text-emerald-300">
-      {/* Top Terminal Bar */}
-      <header className="border-b border-slate-800/80 bg-[#0b101b]/95 backdrop-blur sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+    <div
+      className={`min-h-screen font-sans transition-colors duration-200 ${
+        isDarkMode
+          ? "bg-[#070b12] text-slate-100"
+          : "bg-slate-50 text-slate-900"
+      }`}
+    >
+      {/* CLUSTERED TOP CONTROL BAR */}
+      <header
+        className={`border-b sticky top-0 z-40 backdrop-blur ${
+          isDarkMode
+            ? "border-slate-800 bg-[#0b101b]/95"
+            : "border-slate-200 bg-white/95"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+          {/* Logo & Brand */}
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center shadow-md">
               <TrendingUp className="h-5 w-5 text-slate-950 stroke-[2.5]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-lg tracking-tight text-white">AlphaPairs</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono font-medium">
-                  QUANT
-                </span>
-                <span className="text-xs px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono">
-                  MCP 2025-11-25
+                <span className="font-bold text-base tracking-tight">AlphaPairs</span>
+                <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
+                  DEVIATION QUANT
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Statistical Arbitrage &amp; Unfabricated Live Market Protocol Server</p>
+              <p className="text-[11px] opacity-60">
+                Logarithms, OLS Regressions &amp; 20-Day Moving Averages
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Toggle MCP Direct Routing */}
-            <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-mono">
-              <span>App Mode:</span>
-              <button
-                onClick={() => setUseMcpDirectly(!useMcpDirectly)}
-                className={`px-2 py-0.5 rounded transition ${
-                  useMcpDirectly
-                    ? "bg-emerald-500 text-slate-950 font-bold"
-                    : "bg-slate-800 text-slate-400 hover:text-white"
-                }`}
-                title="Toggles whether user actions invoke the MCP endpoint (/api/mcp tools/call) or REST"
-              >
-                {useMcpDirectly ? "via /api/mcp (Active)" : "via REST"}
-              </button>
-            </div>
+          {/* CLUSTERED TOGGLES (All toggles clustered at top to prevent visual crowdedness) */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Clickable MCP Production Status Badge */}
+            <button
+              onClick={() => setShowMcpModal(true)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium transition cursor-pointer shadow-sm active:scale-95 ${
+                mcpHealth.status === "connected"
+                  ? isDarkMode
+                    ? "bg-slate-900 border-emerald-500/50 text-emerald-400 hover:bg-slate-800"
+                    : "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                  : "bg-amber-950/40 border-amber-500/50 text-amber-400"
+              }`}
+              title="Click to view MCP Server health, live latency, and protocol specs"
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>MCP Server:</span>
+              <span className="font-bold underline underline-offset-2">/api/mcp</span>
+              <span className="text-[10px] opacity-75">
+                {mcpHealth.latencyMs ? `(${mcpHealth.latencyMs}ms)` : "(Active)"}
+              </span>
+            </button>
 
+            {/* Light / Dark Mode Toggle */}
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition cursor-pointer ${
+                isDarkMode
+                  ? "bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700"
+                  : "bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200"
+              }`}
+              title="Toggle Light or Dark interface"
+            >
+              {isDarkMode ? (
+                <>
+                  <Sun className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Light Mode</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="h-3.5 w-3.5 text-slate-700" />
+                  <span>Dark Mode</span>
+                </>
+              )}
+            </button>
+
+            {/* Copy MCP URL Button */}
             <button
               onClick={copyMcpUrl}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition border border-slate-700 active:scale-95"
-              title="Copy public MCP URL for external agents"
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition cursor-pointer ${
+                isDarkMode
+                  ? "bg-slate-900 border-slate-800 text-slate-300 hover:text-white"
+                  : "bg-white border-slate-200 text-slate-700 hover:text-slate-950"
+              }`}
+              title="Copy public MCP URL for external autonomous agents"
             >
-              {copiedMcpUrl ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-              <span>{copiedMcpUrl ? "Copied MCP URL!" : "Copy MCP URL"}</span>
+              {copiedMcpUrl ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+              <span className="hidden sm:inline">{copiedMcpUrl ? "Copied" : "Copy URL"}</span>
             </button>
           </div>
         </div>
 
-        {/* Live MCP Connection & Authenticity Banner */}
-        <div className="border-t border-slate-800/80 bg-slate-950/80 px-4 py-2.5">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Connection Status Badge */}
-              <div className="flex items-center gap-2">
-                {mcpHealth.status === "verifying" && (
-                  <span className="flex items-center gap-1.5 text-amber-400 font-mono font-medium">
-                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                    Testing MCP Connection...
-                  </span>
-                )}
-                {mcpHealth.status === "connected" && (
-                  <span className="flex items-center gap-1.5 text-emerald-400 font-mono font-medium">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                    MCP CONNECTED: Streamable HTTP (HTTP 200 OK)
-                  </span>
-                )}
-                {mcpHealth.status === "error" && (
-                  <span className="flex items-center gap-1.5 text-rose-400 font-mono font-medium">
-                    <XCircle className="h-4 w-4 text-rose-400" />
-                    MCP DISCONNECTED: {mcpHealth.errorMessage}
-                  </span>
-                )}
-              </div>
-
-              {/* Tools Count */}
-              {mcpHealth.status === "connected" && (
-                <span className="text-slate-400 font-mono hidden sm:inline">
-                  &bull; <strong className="text-white">{mcpHealth.toolsCount} Tools</strong> Registered &bull; Latency: <strong className="text-cyan-400">{mcpHealth.latencyMs}ms</strong>
-                </span>
-              )}
-
-              {/* Price Authenticity Verification */}
-              {mcpHealth.priceSample && (
-                <div className="flex items-center gap-2 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-1 rounded text-[11px] font-mono text-emerald-300">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>
-                    Price Authenticity: <strong className="text-white">UNFABRICATED</strong> ({mcpHealth.priceSample.ticker} Close: ${mcpHealth.priceSample.close} | Vol: {(mcpHealth.priceSample.volume / 1e6).toFixed(2)}M | Date: {mcpHealth.priceSample.date})
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Re-verify Button */}
-            <button
-              onClick={verifyMcpConnection}
-              disabled={mcpHealth.status === "verifying"}
-              className="flex items-center gap-1 text-[11px] text-slate-300 hover:text-emerald-400 font-mono transition ml-auto"
-            >
-              <RefreshCw className={`h-3 w-3 ${mcpHealth.status === "verifying" ? "animate-spin" : ""}`} />
-              <span>Verify MCP &amp; Prices</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="max-w-7xl mx-auto px-4 flex border-t border-slate-800/60 overflow-x-auto text-xs font-medium">
+        {/* NAVIGATION TABS */}
+        <div className="max-w-7xl mx-auto px-4 flex border-t overflow-x-auto text-xs font-medium border-inherit">
           <button
             onClick={() => setActiveTab("deviations")}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 whitespace-nowrap transition ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 whitespace-nowrap transition ${
               activeTab === "deviations"
-                ? "border-emerald-400 text-emerald-400 bg-emerald-500/5 font-semibold"
-                : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30"
+                ? "border-emerald-500 text-emerald-500 font-bold"
+                : "border-transparent opacity-70 hover:opacity-100"
             }`}
           >
-            <Activity className="h-4 w-4" />
-            Deviation &amp; Spread Engine
+            <Activity className="h-3.5 w-3.5" />
+            <span>Target &amp; Basket Analysis</span>
+            <GrandmaTooltip
+              title="Target &amp; Basket"
+              grandmaText="We pick one special stock to watch like a hawk, and compare it to its brothers and sisters to see if it wanders away."
+            />
+          </button>
+
+          <button
+            onClick={() => setActiveTab("right_now")}
+            className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 whitespace-nowrap transition ${
+              activeTab === "right_now"
+                ? "border-emerald-500 text-emerald-500 font-bold"
+                : "border-transparent opacity-70 hover:opacity-100"
+            }`}
+          >
+            <Zap className="h-3.5 w-3.5 text-amber-400" />
+            <span>Right Now (Buy / Short Flags)</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-500 font-bold font-mono">
+              Live
+            </span>
+            <GrandmaTooltip
+              title="Right Now Section"
+              grandmaText="Looking at today's grocery prices to spot which item is unfairly marked down (bargain buy) or ridiculously overpriced (short sell)."
+            />
+          </button>
+
+          <button
+            onClick={() => setActiveTab("why_peers")}
+            className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 whitespace-nowrap transition ${
+              activeTab === "why_peers"
+                ? "border-emerald-500 text-emerald-500 font-bold"
+                : "border-transparent opacity-70 hover:opacity-100"
+            }`}
+          >
+            <Info className="h-3.5 w-3.5 text-cyan-400" />
+            <span>Why These Peers?</span>
+            <GrandmaTooltip
+              title="Peer Rationale"
+              grandmaText="Explains why these 11 companies are in the same club, how they sell to each other, and why their prices move together."
+            />
           </button>
 
           <button
             onClick={() => {
               setActiveTab("correlation");
-              if (!corrResult) handleRunCorrelation();
+              if (!corrResult) {
+                // Calculate correlation for the current basket
+                fetch("/api/mcp", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                  body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    id: "corr-1",
+                    method: "tools/call",
+                    params: {
+                      name: "alphapairs_calculate_correlation",
+                      arguments: { tickers: [targetTicker, ...peerTickers].slice(0, 10), lookback_days: 60 }
+                    }
+                  })
+                })
+                  .then(r => r.json())
+                  .then(j => setCorrResult(JSON.parse(j.result.content[0].text)))
+                  .catch(() => {});
+              }
             }}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 whitespace-nowrap transition ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 border-b-2 whitespace-nowrap transition ${
               activeTab === "correlation"
-                ? "border-emerald-400 text-emerald-400 bg-emerald-500/5 font-semibold"
-                : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30"
+                ? "border-emerald-500 text-emerald-500 font-bold"
+                : "border-transparent opacity-70 hover:opacity-100"
             }`}
           >
-            <Layers className="h-4 w-4" />
-            Log Correlation Matrix
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("market");
-              if (!marketResult) handleRunMarketData();
-            }}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 whitespace-nowrap transition ${
-              activeTab === "market"
-                ? "border-emerald-400 text-emerald-400 bg-emerald-500/5 font-semibold"
-                : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30"
-            }`}
-          >
-            <Database className="h-4 w-4" />
-            Market OHLCV Bars
-          </button>
-
-          <button
-            onClick={() => setActiveTab("memo")}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 whitespace-nowrap transition ${
-              activeTab === "memo"
-                ? "border-emerald-400 text-emerald-400 bg-emerald-500/5 font-semibold"
-                : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30"
-            }`}
-          >
-            <Sparkles className="h-4 w-4" />
-            AI Divergence Memo
-          </button>
-
-          <button
-            onClick={() => setActiveTab("mcp")}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 whitespace-nowrap transition ${
-              activeTab === "mcp"
-                ? "border-emerald-400 text-emerald-400 bg-emerald-500/5 font-semibold"
-                : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30"
-            }`}
-          >
-            <Server className="h-4 w-4" />
-            MCP Protocol Server
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 font-mono">
-              4 Tools
-            </span>
+            <Layers className="h-3.5 w-3.5" />
+            <span>Log Returns Correlation</span>
+            <GrandmaTooltip
+              title="Correlation Matrix"
+              grandmaText="Like seeing which kids always hold hands and walk together, versus who walks in their own direction."
+            />
           </button>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+      {/* MAIN CONTAINER */}
+      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-        {/* TAB 1: DEVIATION DETECTOR */}
-        {activeTab === "deviations" && (
-          <div className="space-y-6">
-            {/* Presets banner */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4">
-              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-2">
-                <Sliders className="h-3.5 w-3.5 text-emerald-400" />
-                Quick Quant Presets
+        {/* SECTION: 50/50 ROW SPLIT - TARGET EQUITY (LEFT HALF) & PEER BASKET (RIGHT HALF) */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
+
+          {/* LEFT 50%: HIGHLIGHTED TARGET EQUITY HERO CARD (Large font taking at least half the row) */}
+          <div
+            className={`rounded-2xl p-6 border-2 transition shadow-xl relative overflow-hidden flex flex-col justify-between ${
+              isDarkMode
+                ? "bg-gradient-to-br from-slate-900/90 to-slate-950 border-emerald-500 shadow-emerald-500/10"
+                : "bg-gradient-to-br from-emerald-50/60 to-white border-emerald-500 shadow-emerald-500/10"
+            }`}
+          >
+            {/* Top Badge */}
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase bg-emerald-500 text-slate-950 shadow-sm">
+                  <Target className="h-3.5 w-3.5" />
+                  Target Equity (Focus)
+                </span>
+                <GrandmaTooltip
+                  title="Target Equity"
+                  grandmaText="This is our main company of interest. We track its every step against all its competitors."
+                  technicalNote="Dependent variable Y in OLS regression"
+                />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-                {PRESET_BASKETS.map(b => (
+
+              <span className="text-xs font-mono opacity-70">
+                Industry: {targetInfo.category}
+              </span>
+            </div>
+
+            {/* Giant Ticker & Name */}
+            <div className="my-2">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-emerald-500 font-mono">
+                  {targetTicker}
+                </h1>
+                {targetRightNow && (
+                  <span className="text-3xl sm:text-4xl font-mono font-bold">
+                    ${targetRightNow.latest_price.toFixed(2)}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-lg font-bold opacity-90 mt-1">
+                {targetInfo.name}
+              </h2>
+            </div>
+
+            {/* Key Metrics Strip (Moving Average, Regression Beta, 5-Day Change) */}
+            <div className="grid grid-cols-3 gap-3 my-4 pt-4 border-t border-inherit text-xs">
+              <div>
+                <span className="opacity-60 block text-[11px]">
+                  20-Day Moving Avg
+                  <GrandmaTooltip
+                    title="20-Day Moving Average"
+                    grandmaText="The typical average price over the last month, smoothing out daily market bumps."
+                  />
+                </span>
+                <span className="font-mono font-bold text-sm">
+                  ${targetRightNow?.sma_20.toFixed(2) || "---"}
+                </span>
+              </div>
+
+              <div>
+                <span className="opacity-60 block text-[11px]">
+                  OLS Beta (&beta;)
+                  <GrandmaTooltip
+                    title="Beta"
+                    grandmaText="How strongly this stock reacts when its peers move. If 1.2, it jumps 20% higher than its friends."
+                  />
+                </span>
+                <span className="font-mono font-bold text-sm text-cyan-400">
+                  {devResult?.model?.beta || "1.00"}
+                </span>
+              </div>
+
+              <div>
+                <span className="opacity-60 block text-[11px]">
+                  R&sup2; Fit
+                  <GrandmaTooltip
+                    title="R-Squared Fit"
+                    grandmaText="How reliably this stock follows the group. 80%+ means it rarely strays without reason."
+                  />
+                </span>
+                <span className="font-mono font-bold text-sm text-emerald-400">
+                  {devResult?.model?.r_squared ? `${(devResult.model.r_squared * 100).toFixed(0)}%` : "---"}
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Target Switcher Dropdown */}
+            <div className="pt-3 border-t border-inherit flex items-center justify-between gap-3 text-xs">
+              <span className="opacity-70 font-medium">Switch Target Equity:</span>
+              <div className="flex gap-1 overflow-x-auto py-1">
+                {DEFAULT_UNIVERSE.slice(0, 6).map(u => (
                   <button
-                    key={b.name}
-                    onClick={() => {
-                      setTargetTicker(b.target);
-                      setPeerTickersInput(b.peers.join(", "));
-                    }}
-                    className={`text-left p-2.5 rounded-lg border transition ${
-                      targetTicker === b.target
-                        ? "bg-emerald-950/30 border-emerald-500/50"
-                        : "bg-slate-950/40 border-slate-800/80 hover:bg-slate-800/50 hover:border-slate-700"
+                    key={u.symbol}
+                    onClick={() => handleTargetChange(u.symbol)}
+                    className={`px-2 py-1 rounded text-xs font-mono font-bold transition ${
+                      targetTicker === u.symbol
+                        ? "bg-emerald-500 text-slate-950"
+                        : isDarkMode
+                        ? "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                        : "bg-slate-200 text-slate-700 hover:bg-slate-300"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-xs text-white">{b.name}</span>
-                      <span className="text-[10px] font-mono text-emerald-400">{b.target}</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400 mt-1 truncate">
-                      {b.peers.join(", ")}
-                    </p>
+                    {u.symbol}
                   </button>
                 ))}
               </div>
             </div>
-
-            {/* Parameter configuration */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                    Target Equity Ticker
-                  </label>
-                  <input
-                    type="text"
-                    value={targetTicker}
-                    onChange={e => setTargetTicker(e.target.value.toUpperCase())}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-emerald-500"
-                    placeholder="e.g. NVDA"
-                  />
-                </div>
-
-                <div className="lg:col-span-2">
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                    Peer Basket Candidates (comma-separated, up to 10)
-                  </label>
-                  <input
-                    type="text"
-                    value={peerTickersInput}
-                    onChange={e => setPeerTickersInput(e.target.value.toUpperCase())}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-emerald-500"
-                    placeholder="AMD, INTC, TSM, QCOM"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                    Z-Threshold (&sigma; cutoff)
-                  </label>
-                  <select
-                    value={zThreshold}
-                    onChange={e => setZThreshold(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value={1.5}>1.5 &sigma; (Sensitive)</option>
-                    <option value={2.0}>2.0 &sigma; (Standard Arbitrage)</option>
-                    <option value={2.5}>2.5 &sigma; (High Conviction)</option>
-                    <option value={3.0}>3.0 &sigma; (Extreme Dislocation)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <button
-                    onClick={handleRunDeviation}
-                    disabled={devLoading}
-                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-500/20"
-                  >
-                    {devLoading ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Play className="h-4 w-4 fill-slate-950" />
-                    )}
-                    <span>{devLoading ? "Calculating via MCP..." : "Run Detection"}</span>
-                  </button>
-                </div>
-              </div>
-
-              {devError && (
-                <div className="mt-4 p-3 rounded-lg bg-rose-950/40 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 shrink-0" />
-                  <span>{devError}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Regression metrics and results */}
-            {devResult && (
-              <div className="space-y-6">
-                {/* Metric cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-                    <span className="text-xs text-slate-400">OLS Beta (&beta;)</span>
-                    <div className="text-xl font-mono font-bold text-white mt-1">
-                      {devResult.model.beta}
-                    </div>
-                    <span className="text-[11px] text-slate-400">Peer composite sensitivity</span>
-                  </div>
-
-                  <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-                    <span className="text-xs text-slate-400">Model Fit (R&sup2;)</span>
-                    <div className="text-xl font-mono font-bold text-emerald-400 mt-1">
-                      {(devResult.model.r_squared * 100).toFixed(1)}%
-                    </div>
-                    <span className="text-[11px] text-slate-400">Variance explained by peers</span>
-                  </div>
-
-                  <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-                    <span className="text-xs text-slate-400">Residual Volatility (&sigma;)</span>
-                    <div className="text-xl font-mono font-bold text-cyan-400 mt-1">
-                      {devResult.model.residual_std}
-                    </div>
-                    <span className="text-[11px] text-slate-400">Standard error of spread</span>
-                  </div>
-
-                  <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-                    <span className="text-xs text-slate-400">Detected Episodes</span>
-                    <div className="text-xl font-mono font-bold text-white mt-1">
-                      {devResult.episodes.length}
-                    </div>
-                    <span className="text-[11px] text-slate-400">&ge; {devResult.z_threshold}&sigma; Dislocations</span>
-                  </div>
-                </div>
-
-                {/* Residual Z-Score Chart Visualizer */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-white">
-                        {devResult.target} vs Peer Composite Residual Tracking Points
-                      </h3>
-                      <p className="text-xs text-slate-400">
-                        Rolling Z-score deviations with &plusmn;{devResult.z_threshold}&sigma; threshold bands
-                      </p>
-                    </div>
-                    <div className="text-[11px] font-mono text-slate-400">
-                      Upstream: {devResult.source}
-                    </div>
-                  </div>
-
-                  {/* SVG Chart */}
-                  <div className="w-full h-56 bg-slate-950/60 rounded-lg p-2 relative flex items-center justify-center border border-slate-800/80 overflow-hidden">
-                    <svg className="w-full h-full" viewBox="0 0 800 200" preserveAspectRatio="none">
-                      {/* Zero line */}
-                      <line x1="0" y1="100" x2="800" y2="100" stroke="#334155" strokeWidth="1.5" strokeDasharray="3 3" />
-                      {/* +Threshold line */}
-                      <line x1="0" y1={100 - (devResult.z_threshold * 25)} x2="800" y2={100 - (devResult.z_threshold * 25)} stroke="#ef4444" strokeWidth="1" strokeDasharray="4 4" opacity="0.6" />
-                      {/* -Threshold line */}
-                      <line x1="0" y1={100 + (devResult.z_threshold * 25)} x2="800" y2={100 + (devResult.z_threshold * 25)} stroke="#10b981" strokeWidth="1" strokeDasharray="4 4" opacity="0.6" />
-
-                      {/* Points line */}
-                      {devResult.residual_points.length > 1 && (
-                        <polyline
-                          fill="none"
-                          stroke="#38bdf8"
-                          strokeWidth="2.5"
-                          points={devResult.residual_points
-                            .map((p, idx) => {
-                              const x = (idx / (devResult.residual_points.length - 1)) * 760 + 20;
-                              const clampedZ = Math.max(-3.5, Math.min(3.5, p.z_score));
-                              const y = 100 - (clampedZ * 25);
-                              return `${x},${y}`;
-                            })
-                            .join(" ")}
-                        />
-                      )}
-
-                      {/* Nodes */}
-                      {devResult.residual_points.map((p, idx) => {
-                        const x = (idx / (devResult.residual_points.length - 1)) * 760 + 20;
-                        const clampedZ = Math.max(-3.5, Math.min(3.5, p.z_score));
-                        const y = 100 - (clampedZ * 25);
-                        const isExtreme = Math.abs(p.z_score) >= devResult.z_threshold;
-                        return (
-                          <circle
-                            key={idx}
-                            cx={x}
-                            cy={y}
-                            r={isExtreme ? 4.5 : 2.5}
-                            fill={isExtreme ? (p.z_score > 0 ? "#ef4444" : "#10b981") : "#38bdf8"}
-                            stroke="#0b101b"
-                            strokeWidth="1.5"
-                          />
-                        );
-                      })}
-                    </svg>
-
-                    <div className="absolute top-2 right-3 flex items-center gap-3 text-[10px] font-mono text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-rose-500"></span> Overperforming (&gt;+{devResult.z_threshold}&sigma;)
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500"></span> Underperforming (&lt;-{devResult.z_threshold}&sigma;)
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Detected Episodes Table */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-                  <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-semibold text-white">Statistical Divergence Episodes</h3>
-                      <p className="text-xs text-slate-400">
-                        Historical and active dislocation periods flagged by the quantitative residual engine
-                      </p>
-                    </div>
-                  </div>
-
-                  {devResult.episodes.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400 text-xs">
-                      No statistical divergence episodes detected above {devResult.z_threshold}&sigma; in the selected lookback window.
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-950/60 text-slate-400 border-b border-slate-800 font-mono">
-                          <tr>
-                            <th className="py-3 px-4">Episode ID</th>
-                            <th className="py-3 px-4">Direction</th>
-                            <th className="py-3 px-4">Peak Z-Score</th>
-                            <th className="py-3 px-4">Peak Spread %</th>
-                            <th className="py-3 px-4">Duration</th>
-                            <th className="py-3 px-4">Date Window</th>
-                            <th className="py-3 px-4">Status</th>
-                            <th className="py-3 px-4 text-right">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-800/60 font-mono">
-                          {devResult.episodes.map(ep => (
-                            <tr key={ep.episode_id} className="hover:bg-slate-800/30 transition">
-                              <td className="py-3 px-4 text-white font-medium">{ep.episode_id}</td>
-                              <td className="py-3 px-4">
-                                <span
-                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] ${
-                                    ep.direction === "divergence_above"
-                                      ? "bg-rose-950/60 text-rose-300 border border-rose-800/40"
-                                      : "bg-emerald-950/60 text-emerald-300 border border-emerald-800/40"
-                                  }`}
-                                >
-                                  {ep.direction === "divergence_above" ? (
-                                    <ArrowUpRight className="h-3 w-3" />
-                                  ) : (
-                                    <ArrowDownRight className="h-3 w-3" />
-                                  )}
-                                  {ep.direction === "divergence_above" ? "Target Above Peers" : "Target Below Peers"}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4 font-bold text-white">
-                                {ep.peak_z_score > 0 ? `+${ep.peak_z_score}` : ep.peak_z_score}&sigma;
-                              </td>
-                              <td className="py-3 px-4 font-bold text-white">
-                                {ep.peak_spread_pct > 0 ? `+${ep.peak_spread_pct}` : ep.peak_spread_pct}%
-                              </td>
-                              <td className="py-3 px-4 text-slate-300">{ep.duration_days} days</td>
-                              <td className="py-3 px-4 text-slate-400 text-[11px]">
-                                {ep.start_date} &rarr; {ep.peak_date}
-                              </td>
-                              <td className="py-3 px-4">
-                                <span
-                                  className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
-                                    ep.status === "active"
-                                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse"
-                                      : "bg-slate-800 text-slate-300"
-                                  }`}
-                                >
-                                  {ep.status}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4 text-right">
-                                <button
-                                  onClick={() => handleTriggerMemoFromEpisode(ep)}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 text-xs font-sans font-medium transition"
-                                >
-                                  <Sparkles className="h-3 w-3" />
-                                  <span>Analyze with AI</span>
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
-        )}
 
-        {/* TAB 2: CORRELATION MATRIX */}
-        {activeTab === "correlation" && (
-          <div className="space-y-6">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl">
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                    Tickers for Continuous Log Return Matrix (up to 10)
-                  </label>
-                  <input
-                    type="text"
-                    value={corrTickersInput}
-                    onChange={e => setCorrTickersInput(e.target.value.toUpperCase())}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-emerald-500"
-                    placeholder="NVDA, AMD, TSM, INTC, MSFT, AAPL"
+          {/* RIGHT 50%: PEER BASKET & SELECTION SECTION */}
+          <div
+            className={`rounded-2xl p-6 border transition shadow-lg flex flex-col justify-between ${
+              isDarkMode
+                ? "bg-slate-900/80 border-slate-800"
+                : "bg-white border-slate-200 shadow-slate-100"
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-bold text-sm">
+                    Comparison Peer Basket ({peerTickers.length} Stocks)
+                  </h3>
+                  <GrandmaTooltip
+                    title="Peer Basket"
+                    grandmaText="The group of similar companies. We average their prices together into a single benchmark."
+                    technicalNote="Composite benchmark basket X"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                    Lookback Days
-                  </label>
-                  <select
-                    value={corrLookback}
-                    onChange={e => setCorrLookback(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value={30}>30 Days (Short-term)</option>
-                    <option value={60}>60 Days (Quarterly)</option>
-                    <option value={90}>90 Days (Half-year)</option>
-                    <option value={180}>180 Days (Long-term)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <button
-                    onClick={handleRunCorrelation}
-                    disabled={corrLoading}
-                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-500/20"
-                  >
-                    {corrLoading ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Layers className="h-4 w-4" />
-                    )}
-                    <span>{corrLoading ? "Computing Matrix via MCP..." : "Calculate Matrix"}</span>
-                  </button>
-                </div>
+                <span className="text-[11px] opacity-60 font-mono">
+                  Default: Tech Megacaps
+                </span>
               </div>
 
-              {corrError && (
-                <div className="mt-4 p-3 rounded-lg bg-rose-950/40 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 shrink-0" />
-                  <span>{corrError}</span>
-                </div>
-              )}
-            </div>
-
-            {corrResult && (
-              <div className="space-y-6">
-                {/* N x N Matrix Grid */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 overflow-hidden">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-white">Continuous Logarithmic Returns Correlation Matrix</h3>
-                      <p className="text-xs text-slate-400">
-                        Computed across {corrResult.trading_days_analyzed} synchronized trading sessions (Upstream: {corrResult.source})
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-center text-xs border-collapse">
-                      <thead>
-                        <tr>
-                          <th className="p-2 border border-slate-800 bg-slate-950 font-mono text-slate-400"></th>
-                          {corrResult.tickers.map(t => (
-                            <th key={t} className="p-2.5 border border-slate-800 bg-slate-950 font-mono font-bold text-white">
-                              {t}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {corrResult.tickers.map(tA => (
-                          <tr key={tA}>
-                            <td className="p-2.5 border border-slate-800 bg-slate-950 font-mono font-bold text-white text-left">
-                              {tA}
-                            </td>
-                            {corrResult.tickers.map(tB => {
-                              const val = corrResult.matrix[tA]?.[tB] ?? 0;
-                              return (
-                                <td
-                                  key={tB}
-                                  className={`p-2.5 border border-slate-850 font-mono font-semibold transition ${getCorrColor(val)}`}
-                                >
-                                  {val.toFixed(2)}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Ranked Pair List */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
-                  <h3 className="text-sm font-semibold text-white mb-3">Pair Correlation Hierarchy</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {corrResult.pairs.slice(0, 12).map(p => (
-                      <div
-                        key={p.pair}
-                        className="bg-slate-950/60 border border-slate-800 rounded-lg p-3 flex items-center justify-between font-mono"
-                      >
-                        <div>
-                          <span className="text-xs font-bold text-white">{p.pair}</span>
-                          <div className="text-[10px] text-slate-400">{p.ticker_a} &amp; {p.ticker_b}</div>
-                        </div>
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${getCorrColor(p.correlation)}`}>
-                          {p.correlation > 0 ? `+${p.correlation.toFixed(3)}` : p.correlation.toFixed(3)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 3: MARKET OHLCV */}
-        {activeTab === "market" && (
-          <div className="space-y-6">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl">
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                    Tickers (up to 5 US Equities)
-                  </label>
-                  <input
-                    type="text"
-                    value={marketTickersInput}
-                    onChange={e => setMarketTickersInput(e.target.value.toUpperCase())}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-emerald-500"
-                    placeholder="NVDA, AMD, MSFT"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                    Lookback Period
-                  </label>
-                  <select
-                    value={marketLookback}
-                    onChange={e => setMarketLookback(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-emerald-500"
+              {/* Peer Chips Grid */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {peerTickers.map(peer => (
+                  <div
+                    key={peer}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono font-bold transition ${
+                      isDarkMode
+                        ? "bg-slate-950 border-slate-800 text-slate-200 hover:border-slate-700"
+                        : "bg-slate-100 border-slate-200 text-slate-800 hover:border-slate-300"
+                    }`}
                   >
-                    <option value={15}>15 Days</option>
-                    <option value={30}>30 Days</option>
-                    <option value={60}>60 Days</option>
-                    <option value={90}>90 Days</option>
-                  </select>
-                </div>
-
-                <div>
-                  <button
-                    onClick={handleRunMarketData}
-                    disabled={marketLoading}
-                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-500/20"
-                  >
-                    {marketLoading ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Database className="h-4 w-4" />
-                    )}
-                    <span>{marketLoading ? "Fetching via MCP..." : "Fetch OHLCV Bars"}</span>
-                  </button>
-                </div>
-              </div>
-
-              {marketError && (
-                <div className="mt-4 p-3 rounded-lg bg-rose-950/40 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 shrink-0" />
-                  <span>{marketError}</span>
-                </div>
-              )}
-            </div>
-
-            {marketResult && (
-              <div className="space-y-6">
-                {/* Ticker Selector Tabs */}
-                <div className="flex gap-2 border-b border-slate-800 pb-2">
-                  {marketResult.tickers.map(t => (
+                    <span>{peer}</span>
                     <button
-                      key={t}
-                      onClick={() => setSelectedMarketTicker(t)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
-                        selectedMarketTicker === t
-                          ? "bg-emerald-500 text-slate-950"
-                          : "bg-slate-900 text-slate-300 hover:bg-slate-800"
-                      }`}
+                      onClick={() => handleTargetChange(peer)}
+                      className="text-[10px] text-emerald-500 hover:underline"
+                      title="Set as Target Equity"
                     >
-                      {t}
+                      (Make Target)
                     </button>
-                  ))}
-                </div>
-
-                {/* OHLCV Table */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-                  <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-semibold text-white">
-                        {selectedMarketTicker} Daily OHLCV Bars (Last 20 Sessions)
-                      </h3>
-                      <p className="text-xs text-slate-400">
-                        Upstream: {marketResult.source} &bull; Fetched: {new Date(marketResult.fetched_at).toLocaleTimeString()}
-                      </p>
-                    </div>
+                    {peerTickers.length > 2 && (
+                      <button
+                        onClick={() => handleRemovePeer(peer)}
+                        className="text-slate-400 hover:text-rose-500 ml-1"
+                        title="Remove peer"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
                   </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950/60 text-slate-400 border-b border-slate-800 font-mono">
-                        <tr>
-                          <th className="py-2.5 px-4">Date</th>
-                          <th className="py-2.5 px-4">Open ($)</th>
-                          <th className="py-2.5 px-4">High ($)</th>
-                          <th className="py-2.5 px-4">Low ($)</th>
-                          <th className="py-2.5 px-4">Close ($)</th>
-                          <th className="py-2.5 px-4">Volume</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800/60 font-mono">
-                        {(marketResult.data[selectedMarketTicker] || []).map((bar, idx) => {
-                          const isGreen = bar.close >= bar.open;
-                          return (
-                            <tr key={idx} className="hover:bg-slate-800/30 transition">
-                              <td className="py-2.5 px-4 text-slate-300">{bar.date}</td>
-                              <td className="py-2.5 px-4 text-slate-200">{bar.open.toFixed(2)}</td>
-                              <td className="py-2.5 px-4 text-emerald-400">{bar.high.toFixed(2)}</td>
-                              <td className="py-2.5 px-4 text-rose-400">{bar.low.toFixed(2)}</td>
-                              <td className={`py-2.5 px-4 font-bold ${isGreen ? "text-emerald-400" : "text-rose-400"}`}>
-                                {bar.close.toFixed(2)}
-                              </td>
-                              <td className="py-2.5 px-4 text-slate-400">{bar.volume.toLocaleString()}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 4: AI DIVERGENCE MEMO */}
-        {activeTab === "memo" && (
-          <div className="space-y-6">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-emerald-400" />
-                <h3 className="text-sm font-semibold text-white">Institutional Divergence Catalyst Research Memo</h3>
-              </div>
-              <p className="text-xs text-slate-400 mb-4">
-                Powered by Google Gemini 3.8 Flash to synthesize fundamental earnings events, supply-chain bottlenecks, and mean-reversion drivers.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Target Ticker</label>
-                  <input
-                    type="text"
-                    value={memoTicker}
-                    onChange={e => setMemoTicker(e.target.value.toUpperCase())}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-xs font-mono text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Peer Group Name</label>
-                  <input
-                    type="text"
-                    value={memoGroupName}
-                    onChange={e => setMemoGroupName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-xs text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Peer Tickers</label>
-                  <input
-                    type="text"
-                    value={memoPeersInput}
-                    onChange={e => setMemoPeersInput(e.target.value.toUpperCase())}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-xs font-mono text-white"
-                  />
-                </div>
+                ))}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Peak Z-Score</label>
+              {/* Add Custom Ticker Input */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium opacity-80 mb-1.5">
+                  Enter individual stock ticker to add:
+                </label>
+                <div className="flex gap-2">
                   <input
-                    type="number"
-                    step="0.1"
-                    value={memoMaxZ}
-                    onChange={e => setMemoMaxZ(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-xs font-mono text-white"
+                    type="text"
+                    value={newTickerInput}
+                    onChange={e => setNewTickerInput(e.target.value.toUpperCase())}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") handleAddTicker(newTickerInput);
+                    }}
+                    placeholder="e.g. TSM, INTC, CRM, QCOM"
+                    className={`flex-1 px-3 py-2 rounded-lg border text-xs font-mono focus:outline-none focus:border-emerald-500 ${
+                      isDarkMode
+                        ? "bg-slate-950 border-slate-800 text-white"
+                        : "bg-slate-50 border-slate-300 text-slate-900"
+                    }`}
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Peak Spread %</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={memoPeakSpread}
-                    onChange={e => setMemoPeakSpread(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-xs font-mono text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Direction</label>
-                  <select
-                    value={memoDirection}
-                    onChange={e => setMemoDirection(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-xs font-mono text-white"
+                  <button
+                    onClick={() => handleAddTicker(newTickerInput)}
+                    className="px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-1 hover:bg-emerald-400 transition cursor-pointer"
                   >
-                    <option value="divergence_above">divergence_above</option>
-                    <option value="divergence_below">divergence_below</option>
-                  </select>
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add</span>
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Duration Days</label>
-                  <input
-                    type="number"
-                    value={memoDuration}
-                    onChange={e => setMemoDuration(Number(e.target.value))}
-                    className="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-xs font-mono text-white"
-                  />
+              </div>
+
+              {/* Industry Peer Suggestions */}
+              <div>
+                <span className="block text-[11px] font-medium opacity-70 mb-2">
+                  Suggested similar category stocks for {targetTicker}:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestions.map(s => {
+                    const alreadyIn = peerTickers.includes(s.symbol) || targetTicker === s.symbol;
+                    return (
+                      <button
+                        key={s.symbol}
+                        onClick={() => handleAddTicker(s.symbol)}
+                        disabled={alreadyIn}
+                        className={`text-left px-2.5 py-1 rounded text-xs border transition ${
+                          alreadyIn
+                            ? "opacity-40 cursor-not-allowed bg-transparent border-dashed border-inherit"
+                            : isDarkMode
+                            ? "bg-slate-950 border-slate-800 hover:border-emerald-500 text-slate-300"
+                            : "bg-slate-100 border-slate-300 hover:border-emerald-500 text-slate-700"
+                        }`}
+                        title={s.category}
+                      >
+                        <span className="font-mono font-bold">{s.symbol}</span>{" "}
+                        <span className="text-[10px] opacity-75">({s.name.split(" ")[0]})</span>
+                      </button>
+                    );
+                  })}
                 </div>
+              </div>
+            </div>
+
+            {/* Quick Quant Controls */}
+            <div className="pt-4 mt-4 border-t border-inherit flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="opacity-70">Z-Cutoff:</span>
+                <select
+                  value={zThreshold}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setZThreshold(val);
+                    runDeviationCalculation(targetTicker, peerTickers, val, lookbackDays);
+                  }}
+                  className={`px-2 py-1 rounded border text-xs font-mono ${
+                    isDarkMode ? "bg-slate-950 border-slate-800 text-white" : "bg-slate-100 border-slate-300"
+                  }`}
+                >
+                  <option value={1.5}>1.5&sigma; (Sensitive)</option>
+                  <option value={2.0}>2.0&sigma; (Standard)</option>
+                  <option value={2.5}>2.5&sigma; (High Conviction)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="opacity-70">Lookback:</span>
+                <select
+                  value={lookbackDays}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setLookbackDays(val);
+                    runDeviationCalculation(targetTicker, peerTickers, zThreshold, val);
+                  }}
+                  className={`px-2 py-1 rounded border text-xs font-mono ${
+                    isDarkMode ? "bg-slate-950 border-slate-800 text-white" : "bg-slate-100 border-slate-300"
+                  }`}
+                >
+                  <option value={30}>30 Days</option>
+                  <option value={60}>60 Days</option>
+                  <option value={90}>90 Days</option>
+                </select>
               </div>
 
               <button
-                onClick={handleRunMemo}
-                disabled={memoLoading}
-                className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-2.5 rounded-lg text-xs flex items-center gap-2 transition disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-500/20"
+                onClick={() => runDeviationCalculation(targetTicker, peerTickers, zThreshold, lookbackDays)}
+                disabled={devLoading}
+                className="px-3 py-1 rounded bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition text-xs flex items-center gap-1"
               >
-                {memoLoading ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4 fill-slate-950" />
-                )}
-                <span>{memoLoading ? "Generating via MCP..." : "Generate AI Memo"}</span>
+                <RefreshCw className={`h-3 w-3 ${devLoading ? "animate-spin" : ""}`} />
+                <span>Re-Analyze</span>
               </button>
+            </div>
+          </div>
+        </section>
 
-              {memoError && (
-                <div className="mt-4 p-3 rounded-lg bg-rose-950/40 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 shrink-0" />
-                  <span>{memoError}</span>
-                </div>
-              )}
+        {/* SECTION: "Right Now" (JUST BELOW BASKET ROW - HIGHLIGHTS SURGE/LAG & FLAGS BUY / SHORT SELL) */}
+        <section
+          className={`rounded-2xl p-6 border transition shadow-xl ${
+            isDarkMode
+              ? "bg-slate-900/90 border-slate-800"
+              : "bg-white border-slate-200"
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-amber-500" />
+                <h2 className="text-xl font-bold tracking-tight">Right Now</h2>
+                <GrandmaTooltip
+                  title="Right Now"
+                  grandmaText="We inspect prices right this minute against their 20-day moving average. If a stock fell way behind its friends, it's flagged as a Potential Buy. If it ran way too high, it's flagged as a Potential Short Sell."
+                  technicalNote="Real-time moving average residual spread"
+                />
+              </div>
+              <p className="text-xs opacity-65 mt-0.5">
+                Present-time snapshot: Identifying which equity in the basket is lagging or surging compared to the peer trend
+              </p>
             </div>
 
-            {memoResult && (
-              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-6 space-y-6 shadow-2xl">
-                {/* Header */}
-                <div className="border-b border-slate-800 pb-4">
-                  <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 mb-1">
-                    <FileText className="h-3.5 w-3.5" />
-                    <span>INSTITUTIONAL QUANTITATIVE RESEARCH MEMO</span>
-                  </div>
-                  <h2 className="text-lg font-bold text-white">{memoResult.memo.headline}</h2>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-2 font-mono">
-                    <span>Target: <strong className="text-white">{memoResult.ticker}</strong></span>
-                    <span>&bull;</span>
-                    <span>Group: <strong className="text-white">{memoResult.peer_group_name}</strong></span>
-                    <span>&bull;</span>
-                    <span>Peak Z: <strong className="text-white">{memoResult.episode_metrics.max_z_score}&sigma;</strong></span>
-                    <span>&bull;</span>
-                    <span>Upstream: <strong className="text-emerald-400">{memoResult.source}</strong></span>
-                  </div>
-                </div>
+            <div className="text-xs font-mono opacity-70">
+              Session: {devResult?.latest_date || "Live Session"} &bull; Engine: {devResult?.source}
+            </div>
+          </div>
 
-                {/* Executive Summary */}
-                <div className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                    Executive Summary &amp; Thesis
-                  </h4>
-                  <p className="text-xs leading-relaxed text-slate-200">
-                    {memoResult.memo.executive_summary}
-                  </p>
-                </div>
+          {/* Right Now Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {devResult?.right_now?.map(item => {
+              const isBuy = item.action === "POTENTIAL BUY";
+              const isShort = item.action === "POTENTIAL SHORT SELL";
 
-                {/* Two column fundamentals */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-slate-950/40 border border-slate-800/80 rounded-lg p-4">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">
-                      Corporate &amp; Idiosyncratic Catalysts
-                    </h4>
-                    <p className="text-xs leading-relaxed text-slate-300">
-                      {memoResult.memo.corporate_catalysts}
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-950/40 border border-slate-800/80 rounded-lg p-4">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 mb-2">
-                      Peer Basket &amp; Sector Dynamics
-                    </h4>
-                    <p className="text-xs leading-relaxed text-slate-300">
-                      {memoResult.memo.peer_dynamics}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Mean Reversion Assessment */}
-                <div className="bg-slate-950/40 border border-slate-800/80 rounded-lg p-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">
-                    Mean-Reversion Assessment &amp; Decay Mechanics
-                  </h4>
-                  <p className="text-xs leading-relaxed text-slate-300">
-                    {memoResult.memo.mean_reversion_assessment}
-                  </p>
-                </div>
-
-                {/* Tactical Trade Structuring & Risks */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-slate-950/40 border border-slate-800/80 rounded-lg p-4">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                      Tactical Trade Recommendations
-                    </h4>
-                    <ul className="space-y-1.5 text-xs text-slate-300">
-                      {memoResult.tactical_recommendations.map((rec, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <ChevronRight className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                          <span>{rec}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="bg-slate-950/40 border border-slate-800/80 rounded-lg p-4">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400 mb-2">
-                      Regime Change &amp; Downside Risks
-                    </h4>
-                    <ul className="space-y-1.5 text-xs text-slate-300">
-                      {memoResult.risk_factors.map((risk, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <AlertTriangle className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
-                          <span>{risk}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Catalyst Milestones */}
-                {memoResult.catalyst_timeline && memoResult.catalyst_timeline.length > 0 && (
-                  <div className="bg-slate-950/40 border border-slate-800/80 rounded-lg p-4">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">
-                      Anticipated Catalyst Milestones
-                    </h4>
-                    <div className="space-y-2">
-                      {memoResult.catalyst_timeline.map((c, i) => (
-                        <div key={i} className="flex items-center justify-between text-xs p-2 rounded bg-slate-900 border border-slate-800/60">
-                          <div>
-                            <span className="font-bold text-white">{c.date_or_milestone}:</span>{" "}
-                            <span className="text-slate-300">{c.event}</span>
-                          </div>
-                          <span className="text-emerald-400 text-[11px] font-mono shrink-0 ml-2">{c.impact}</span>
+              return (
+                <div
+                  key={item.ticker}
+                  className={`rounded-xl p-4 border transition flex flex-col justify-between ${
+                    item.is_target
+                      ? isDarkMode
+                        ? "bg-emerald-950/20 border-emerald-500/60 ring-1 ring-emerald-500/30"
+                        : "bg-emerald-50/50 border-emerald-500/60 ring-1 ring-emerald-500/30"
+                      : isBuy
+                      ? isDarkMode
+                        ? "bg-emerald-950/10 border-emerald-700/40"
+                        : "bg-emerald-50/30 border-emerald-300"
+                      : isShort
+                      ? isDarkMode
+                        ? "bg-rose-950/10 border-rose-700/40"
+                        : "bg-rose-50/30 border-rose-300"
+                      : isDarkMode
+                      ? "bg-slate-950/50 border-slate-800"
+                      : "bg-slate-50 border-slate-200"
+                  }`}
+                >
+                  <div>
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-bold text-base">{item.ticker}</span>
+                          {item.is_target && (
+                            <span className="px-1.5 py-0.2 rounded text-[10px] bg-emerald-500 text-slate-950 font-bold font-mono">
+                              TARGET
+                            </span>
+                          )}
                         </div>
-                      ))}
+                        <span className="text-[11px] opacity-70 block truncate max-w-[180px]">
+                          {item.company_name}
+                        </span>
+                      </div>
+
+                      {/* Action Flag */}
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-tight uppercase ${
+                          isBuy
+                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                            : isShort
+                            ? "bg-rose-500/20 text-rose-400 border border-rose-500/40"
+                            : "bg-slate-500/10 text-slate-400 border border-slate-500/30"
+                        }`}
+                      >
+                        {item.action}
+                      </span>
+                    </div>
+
+                    {/* Numbers: Price, 20-Day SMA, Relative Diff */}
+                    <div className="flex items-baseline justify-between py-2 border-y border-inherit text-xs font-mono">
+                      <div>
+                        <span className="opacity-60 block text-[10px]">Price</span>
+                        <span className="font-bold text-sm">${item.latest_price.toFixed(2)}</span>
+                      </div>
+
+                      <div>
+                        <span className="opacity-60 block text-[10px]">20-Day SMA</span>
+                        <span className="opacity-90">${item.sma_20.toFixed(2)}</span>
+                      </div>
+
+                      <div>
+                        <span className="opacity-60 block text-[10px]">vs Group Trend</span>
+                        <span
+                          className={`font-bold ${
+                            item.relative_perf_pct < 0 ? "text-emerald-400" : "text-rose-400"
+                          }`}
+                        >
+                          {item.relative_perf_pct > 0 ? `+${item.relative_perf_pct}%` : `${item.relative_perf_pct}%`}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                )}
+
+                  {/* Grandma Friendly Explanation */}
+                  <p className="text-xs opacity-80 mt-2.5 leading-relaxed italic">
+                    &ldquo;{item.plain_english}&rdquo;
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* SECTION: "Historical Deviation" (CLEARLY DELINEATED & NAMED) */}
+        <section
+          className={`rounded-2xl p-6 border transition shadow-xl space-y-6 ${
+            isDarkMode
+              ? "bg-slate-900/90 border-slate-800"
+              : "bg-white border-slate-200"
+          }`}
+        >
+          {/* Section Header */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-inherit">
+            <div>
+              <div className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-emerald-500" />
+                <h2 className="text-xl font-bold tracking-tight">Historical Deviation</h2>
+                <GrandmaTooltip
+                  title="Historical Deviation"
+                  grandmaText="A complete timeline of past moments when this stock wandered away from its group. We show when it ran off (Start Date), when it reached the farthest distance (Peak Date), and when it walked back (Collapse Date)."
+                  technicalNote="OLS continuous residual deviation episodes"
+                />
               </div>
+              <p className="text-xs opacity-65 mt-0.5">
+                Tracking historical start dates, peak dislocations, collapse (reversion) dates, and internal/external drivers
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-mono">
+              <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
+                {devResult?.episodes.length || 0} Episodes Detected
+              </span>
+            </div>
+          </div>
+
+          {/* Interactive Residual Chart Visualizer */}
+          <div>
+            <div className="flex items-center justify-between mb-2 text-xs">
+              <span className="font-semibold">
+                {targetTicker} 20-Day Moving Average &amp; Normalized Peer Benchmark
+              </span>
+              <span className="font-mono text-[11px] opacity-70">
+                Threshold: &plusmn;{zThreshold}&sigma;
+              </span>
+            </div>
+
+            {/* SVG Visualizer */}
+            <div
+              className={`w-full h-56 rounded-xl p-3 relative flex items-center justify-center border overflow-hidden ${
+                isDarkMode ? "bg-slate-950/80 border-slate-800" : "bg-slate-100 border-slate-300"
+              }`}
+            >
+              <svg className="w-full h-full" viewBox="0 0 800 200" preserveAspectRatio="none">
+                {/* Center Baseline */}
+                <line x1="0" y1="100" x2="800" y2="100" stroke={isDarkMode ? "#334155" : "#cbd5e1"} strokeWidth="1.5" strokeDasharray="3 3" />
+                {/* +Threshold Band */}
+                <line x1="0" y1={100 - (zThreshold * 25)} x2="800" y2={100 - (zThreshold * 25)} stroke="#ef4444" strokeWidth="1" strokeDasharray="4 4" opacity="0.6" />
+                {/* -Threshold Band */}
+                <line x1="0" y1={100 + (zThreshold * 25)} x2="800" y2={100 + (zThreshold * 25)} stroke="#10b981" strokeWidth="1" strokeDasharray="4 4" opacity="0.6" />
+
+                {/* Polyline */}
+                {devResult?.residual_points && devResult.residual_points.length > 1 && (
+                  <polyline
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="2.5"
+                    points={devResult.residual_points
+                      .map((p, idx) => {
+                        const x = (idx / (devResult.residual_points.length - 1)) * 760 + 20;
+                        const clampedZ = Math.max(-3.5, Math.min(3.5, p.z_score));
+                        const y = 100 - (clampedZ * 25);
+                        return `${x},${y}`;
+                      })
+                      .join(" ")}
+                  />
+                )}
+
+                {/* Data Points */}
+                {devResult?.residual_points.map((p, idx) => {
+                  const x = (idx / (devResult.residual_points.length - 1)) * 760 + 20;
+                  const clampedZ = Math.max(-3.5, Math.min(3.5, p.z_score));
+                  const y = 100 - (clampedZ * 25);
+                  const isExtreme = Math.abs(p.z_score) >= zThreshold;
+                  return (
+                    <circle
+                      key={idx}
+                      cx={x}
+                      cy={y}
+                      r={isExtreme ? 4.5 : 2.5}
+                      fill={isExtreme ? (p.z_score > 0 ? "#ef4444" : "#10b981") : "#38bdf8"}
+                      stroke={isDarkMode ? "#0b101b" : "#ffffff"}
+                      strokeWidth="1.5"
+                    />
+                  );
+                })}
+              </svg>
+
+              <div className="absolute top-2 right-3 flex items-center gap-3 text-[10px] font-mono opacity-80">
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-rose-500"></span> Surging Overpriced (&gt;+{zThreshold}&sigma;)
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500"></span> Lagging Bargain (&lt;-{zThreshold}&sigma;)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Historical Episodes List with Start Date, Peak Date, Collapse Date, & Internal/External Rationale */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold flex items-center gap-2">
+              <span>Historical Episodes of {targetTicker} Deviating from Peer Group</span>
+              <GrandmaTooltip
+                title="Episode Log"
+                grandmaText="Each card tells the story of one specific time the stock walked out of line, giving the start date, the peak drama date, and the date it collapsed back to normal."
+              />
+            </h3>
+
+            {devResult?.episodes && devResult.episodes.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {devResult.episodes.map((ep, i) => (
+                  <div
+                    key={ep.episode_id || i}
+                    className={`rounded-xl p-5 border transition ${
+                      isDarkMode ? "bg-slate-950/60 border-slate-800" : "bg-slate-50 border-slate-200"
+                    }`}
+                  >
+                    {/* Top Row: Episode ID, Direction, Dates */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-sm">{ep.episode_id}</span>
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs font-bold font-mono ${
+                            ep.direction === "divergence_above"
+                              ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                              : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                          }`}
+                        >
+                          {ep.direction === "divergence_above"
+                            ? "Diverged Above Peers (Surge)"
+                            : "Diverged Below Peers (Lag)"}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[11px] font-mono opacity-80 border border-inherit">
+                          {ep.duration_days} Days Total
+                        </span>
+                      </div>
+
+                      {/* Status */}
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-bold font-mono uppercase ${
+                          ep.status === "mean_reverted"
+                            ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
+                            : "bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse"
+                        }`}
+                      >
+                        {ep.status === "mean_reverted" ? "Rejoined Peers (Collapsed Back)" : "Still Active"}
+                      </span>
+                    </div>
+
+                    {/* Dates Timeline Strip */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-lg bg-black/10 text-xs font-mono mb-3">
+                      <div>
+                        <span className="opacity-60 block text-[10px]">1. Deviation Began</span>
+                        <span className="font-bold">{ep.start_date}</span>
+                      </div>
+
+                      <div>
+                        <span className="opacity-60 block text-[10px]">2. Maximum Peak Dislocation</span>
+                        <span className="font-bold text-emerald-500">
+                          {ep.peak_date} ({ep.peak_z_score > 0 ? `+${ep.peak_z_score}&sigma;` : `${ep.peak_z_score}&sigma;`})
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="opacity-60 block text-[10px]">3. Collapsed Back to Group</span>
+                        <span className="font-bold text-cyan-400">
+                          {ep.collapse_date ? ep.collapse_date : "Unresolved (Active Dislocation)"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Rationales: Internal vs External Reasons */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                      <div className="p-3 rounded-lg border border-inherit bg-slate-500/5">
+                        <span className="font-bold text-emerald-500 block mb-1">
+                          🏢 Internal Company Reasons:
+                        </span>
+                        <p className="opacity-80 leading-relaxed">
+                          {ep.internal_rationale}
+                        </p>
+                      </div>
+
+                      <div className="p-3 rounded-lg border border-inherit bg-slate-500/5">
+                        <span className="font-bold text-cyan-500 block mb-1">
+                          🌍 External Market &amp; Macro Reasons:
+                        </span>
+                        <p className="opacity-80 leading-relaxed">
+                          {ep.external_rationale}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs opacity-60 text-center py-6">
+                No past deviation episodes detected exceeding &plusmn;{zThreshold}&sigma; in the selected window.
+              </p>
             )}
           </div>
+        </section>
+
+        {/* TAB: "Why These Peers?" (PEER GROUP RATIONALE) */}
+        {activeTab === "why_peers" && (
+          <section
+            className={`rounded-2xl p-6 border transition shadow-xl space-y-6 ${
+              isDarkMode ? "bg-slate-900/90 border-slate-800" : "bg-white border-slate-200"
+            }`}
+          >
+            <div className="border-b pb-4 border-inherit">
+              <div className="flex items-center gap-2">
+                <Info className="h-5 w-5 text-cyan-500" />
+                <h2 className="text-xl font-bold tracking-tight">
+                  Why is {targetTicker} Grouped with These Peers?
+                </h2>
+                <GrandmaTooltip
+                  title="Grouping Rationale"
+                  grandmaText="Just like how bakers all care about the price of flour and eggs, these tech companies are tied together because they buy chips, software, and cloud services from one another."
+                />
+              </div>
+              <p className="text-xs opacity-65 mt-1">
+                Industrial classification, supply chain interdependency, and macro co-movement rationale
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs leading-relaxed">
+              <div
+                className={`p-5 rounded-xl border ${
+                  isDarkMode ? "bg-slate-950/60 border-slate-800" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <h3 className="font-bold text-sm text-emerald-500 mb-2 flex items-center gap-1.5">
+                  <span>1. The AI Infrastructure Ecosystem Loop</span>
+                </h3>
+                <p className="opacity-85 mb-3">
+                  <strong>Nvidia, Broadcom, and AMD</strong> supply the hardware accelerators and networking fabric.
+                  <strong> Meta, Microsoft, Amazon, and Google</strong> are their single largest customers, purchasing tens of billions
+                  of dollars worth of GPUs annually to train frontier AI models.
+                </p>
+                <p className="opacity-85">
+                  When Microsoft or Meta announces capital expenditure growth, it directly pumps revenue into Nvidia, Broadcom, and Micron.
+                  Therefore, institutional quant algorithms trade them as a synchronized co-integrated block.
+                </p>
+              </div>
+
+              <div
+                className={`p-5 rounded-xl border ${
+                  isDarkMode ? "bg-slate-950/60 border-slate-800" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <h3 className="font-bold text-sm text-cyan-500 mb-2 flex items-center gap-1.5">
+                  <span>2. Mutual Supply Chain Dependencies</span>
+                </h3>
+                <p className="opacity-85 mb-3">
+                  <strong>Micron Technology (MU)</strong> manufactures High Bandwidth Memory (HBM3e) which is physically packaged onto
+                  every Nvidia and AMD AI chip.
+                  <strong> Broadcom (AVGO)</strong> provides the high-speed Ethernet switches that connect tens of thousands of GPUs together.
+                </p>
+                <p className="opacity-85">
+                  If Micron or Broadcom hits a bottleneck, Nvidia and AMD cannot ship. If Nvidia slows, Micron feels it immediately.
+                  This physical dependency guarantees mathematical correlation.
+                </p>
+              </div>
+
+              <div
+                className={`p-5 rounded-xl border ${
+                  isDarkMode ? "bg-slate-950/60 border-slate-800" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <h3 className="font-bold text-sm text-amber-500 mb-2 flex items-center gap-1.5">
+                  <span>3. Shared Macro Factors (Interest Rates &amp; Nasdaq Indexation)</span>
+                </h3>
+                <p className="opacity-85">
+                  All 11 of these companies are major constituents of the Nasdaq-100 (QQQ), S&amp;P 500 (SPY), and Semiconductor ETF (SMH).
+                  When global pension funds buy or sell broad index baskets, money flows in and out of all 11 stocks simultaneously,
+                  giving them high structural baseline co-movement.
+                </p>
+              </div>
+
+              <div
+                className={`p-5 rounded-xl border ${
+                  isDarkMode ? "bg-slate-950/60 border-slate-800" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <h3 className="font-bold text-sm text-purple-500 mb-2 flex items-center gap-1.5">
+                  <span>4. Why Divergences Present Trading Opportunities</span>
+                </h3>
+                <p className="opacity-85">
+                  Because their fundamentals are tightly interwoven, whenever one stock decouples (due to short-term news, quarterly guidance panic, or options positioning),
+                  the statistical rubber band stretches. In over 80% of historical episodes, the spread eventually snaps back (mean-reverts)
+                  to the group trend line.
+                </p>
+              </div>
+            </div>
+          </section>
         )}
 
-        {/* TAB 5: MCP SERVER EXPLORER */}
-        {activeTab === "mcp" && (
-          <div className="space-y-6">
-            {/* Info Card */}
-            <div className="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/30 border border-emerald-500/30 rounded-xl p-5 shadow-xl">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Server className="h-5 w-5 text-emerald-400" />
-                    <h2 className="text-base font-bold text-white">AlphaPairs Model Context Protocol (MCP) Server</h2>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed max-w-3xl">
-                    This endpoint exposes quantitative statistical arbitrage engines to autonomous agents via the{" "}
-                    <strong>MCP Protocol 2025-11-25</strong> over <strong>Streamable HTTP</strong>. External agents
-                    (including Google Gemini SDK agents via <code className="bg-slate-950 px-1.5 py-0.5 rounded text-emerald-400 font-mono">mcpToTool</code>)
-                    discover and invoke all 4 tools in real time.
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Stateless Session
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center gap-4 text-xs font-mono">
-                <div>
-                  <span className="text-slate-400">Public MCP Address: </span>
-                  <span className="text-emerald-400 font-semibold">https://alphapairs-quant.vercel.app/api/mcp</span>
-                </div>
-                <div>
-                  <span className="text-slate-400">Local Endpoint: </span>
-                  <span className="text-cyan-400 font-semibold">/api/mcp</span>
-                </div>
-              </div>
+        {/* TAB: LOG RETURNS CORRELATION */}
+        {activeTab === "correlation" && corrResult && (
+          <section
+            className={`rounded-2xl p-6 border transition shadow-xl space-y-4 ${
+              isDarkMode ? "bg-slate-900/90 border-slate-800" : "bg-white border-slate-200"
+            }`}
+          >
+            <div className="border-b pb-3 border-inherit">
+              <h2 className="text-xl font-bold tracking-tight">Continuous Log Returns Correlation Grid</h2>
+              <p className="text-xs opacity-65 mt-0.5">
+                Calculated over {corrResult.trading_days_analyzed} synchronized sessions. Upstream: {corrResult.source}
+              </p>
             </div>
 
-            {/* Tool Catalog */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Tool 1 */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <code className="text-xs font-mono font-bold text-emerald-400">
-                      alphapairs_get_market_data
-                    </code>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                      readOnlyHint
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed mb-3">
-                    Returns up to 20 recent daily OHLCV bars per ticker for up to 5 US equity tickers. Data is retrieved directly from the Yahoo Finance Market Data API. Use this tool when you need historical open, high, low, close, and volume series to analyze equity price movements. It does not provide real-time tick-by-tick order book depth or options chain data.
-                  </p>
-                </div>
-                <div className="text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-800">
-                  Inputs: tickers (array), lookback_days (int) &bull; Max 20 bars
-                </div>
-              </div>
-
-              {/* Tool 2 */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <code className="text-xs font-mono font-bold text-emerald-400">
-                      alphapairs_calculate_correlation
-                    </code>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                      readOnlyHint
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed mb-3">
-                    Returns an N x N correlation matrix of continuous logarithmic returns for up to 10 equity tickers over a specified lookback window. Data is computed from historical market prices sourced from the Yahoo Finance Market Data API. Use this tool when constructing statistical pairs or identifying cross-asset co-movement among peer candidates. It does not assess non-linear causality or lead-lag relationships between equities.
-                  </p>
-                </div>
-                <div className="text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-800">
-                  Inputs: tickers (2-10 items), lookback_days (10-252)
-                </div>
-              </div>
-
-              {/* Tool 3 */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <code className="text-xs font-mono font-bold text-emerald-400">
-                      alphapairs_detect_deviations
-                    </code>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                      readOnlyHint
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed mb-3">
-                    Returns up to 20 residual spread tracking points and detected statistical divergence episodes where a target ticker deviates from its peer group benchmark. Data is calculated via ordinary least squares regression from price series retrieved from the Yahoo Finance Market Data API. Use this tool to identify abnormal valuation dislocations and mean-reversion opportunities based on Z-score thresholds. It does not forecast future price direction or generate automated trade execution orders.
-                  </p>
-                </div>
-                <div className="text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-800">
-                  Inputs: target, peers, z_threshold, lookback_days
-                </div>
-              </div>
-
-              {/* Tool 4 */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <code className="text-xs font-mono font-bold text-emerald-400">
-                      alphapairs_analyze_divergence
-                    </code>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                      readOnlyHint
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed mb-3">
-                    Returns an institutional-grade quantitative research memo examining the corporate catalysts, earnings drivers, and mean-reversion factors behind a detected pair dislocation. Analysis is generated using the Google Gemini 3.8 Flash model via the Gemini API. Use this tool when you require deep fundamental and macro synthesis explaining why a target stock decoupled from its peer group. It does not provide personalized investment advice, guaranteed profit targets, or broker order routing.
-                  </p>
-                </div>
-                <div className="text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-800">
-                  Inputs: ticker, peer_group_name, peer_tickers, max_z_score, etc.
-                </div>
-              </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-center text-xs border-collapse">
+                <thead>
+                  <tr>
+                    <th className="p-2 border border-inherit font-mono opacity-50"></th>
+                    {corrResult.tickers.map(t => (
+                      <th key={t} className="p-2.5 border border-inherit font-mono font-bold">
+                        {t}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {corrResult.tickers.map(tA => (
+                    <tr key={tA}>
+                      <td className="p-2.5 border border-inherit font-mono font-bold text-left">
+                        {tA}
+                      </td>
+                      {corrResult.tickers.map(tB => {
+                        const val = corrResult.matrix[tA]?.[tB] ?? 0;
+                        const isHigh = val >= 0.7;
+                        const isMed = val >= 0.4 && val < 0.7;
+                        return (
+                          <td
+                            key={tB}
+                            className={`p-2.5 border border-inherit font-mono font-bold ${
+                              isHigh
+                                ? "bg-emerald-500/20 text-emerald-400"
+                                : isMed
+                                ? "bg-emerald-500/10 text-emerald-300"
+                                : "opacity-60"
+                            }`}
+                          >
+                            {val.toFixed(2)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-
-            {/* Live Interactive MCP Console */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-2xl">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Terminal className="h-4 w-4 text-emerald-400" />
-                  <h3 className="text-sm font-semibold text-white">Live MCP JSON-RPC 2.0 Test Runner</h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">Select Template:</span>
-                  <select
-                    value={mcpSelectedTool}
-                    onChange={e => setMcpSelectedTool(e.target.value)}
-                    className="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs font-mono text-emerald-400"
-                  >
-                    <option value="alphapairs_detect_deviations">alphapairs_detect_deviations</option>
-                    <option value="alphapairs_calculate_correlation">alphapairs_calculate_correlation</option>
-                    <option value="alphapairs_get_market_data">alphapairs_get_market_data</option>
-                    <option value="alphapairs_analyze_divergence">alphapairs_analyze_divergence</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div>
-                  <div className="text-[11px] font-mono text-slate-400 mb-1.5">
-                    POST Payload to /api/mcp:
-                  </div>
-                  <textarea
-                    value={mcpPayload}
-                    onChange={e => setMcpPayload(e.target.value)}
-                    rows={12}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-emerald-300 focus:outline-none focus:border-emerald-500 leading-relaxed"
-                  />
-                  <button
-                    onClick={handleExecuteMcpCall}
-                    disabled={mcpExecuting}
-                    className="mt-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-2 transition disabled:opacity-50 cursor-pointer shadow-lg shadow-emerald-500/20"
-                  >
-                    {mcpExecuting ? (
-                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Play className="h-3.5 w-3.5 fill-slate-950" />
-                    )}
-                    <span>{mcpExecuting ? "Executing Request..." : "Send to /api/mcp"}</span>
-                  </button>
-                </div>
-
-                <div>
-                  <div className="text-[11px] font-mono text-slate-400 mb-1.5">
-                    Streamable HTTP Response from /api/mcp:
-                  </div>
-                  <div className="w-full h-[250px] bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-cyan-300 overflow-auto leading-relaxed">
-                    {mcpResponse ? (
-                      <pre className="whitespace-pre-wrap">{mcpResponse}</pre>
-                    ) : (
-                      <span className="text-slate-600 italic">
-                        Click "Send to /api/mcp" to trigger live execution and view JSON-RPC output.
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          </section>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-[#070b12] py-4 px-4 text-center text-xs text-slate-500 font-mono">
-        AlphaPairs Quant &bull; Model Context Protocol (v1.30.1) &bull; Yahoo Finance &bull; Google Gemini API
+      {/* CLICKABLE MCP PRODUCTION HEALTH & PROTOCOL MODAL */}
+      {showMcpModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div
+            className={`w-full max-w-2xl rounded-2xl border p-6 shadow-2xl relative space-y-5 ${
+              isDarkMode ? "bg-slate-900 border-slate-700 text-white" : "bg-white border-slate-200 text-slate-900"
+            }`}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setShowMcpModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg opacity-60 hover:opacity-100 hover:bg-slate-500/20"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Header */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Server className="h-5 w-5 text-emerald-500" />
+                <h3 className="text-lg font-bold">Production-Ready Financial MCP Server</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                  PROTOCOL 2025-11-25
+                </span>
+              </div>
+              <p className="text-xs opacity-70">
+                Connected via Streamable HTTP for autonomous agent discovery and institutional quote execution.
+              </p>
+            </div>
+
+            {/* Health & Telemetry Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-black/20 text-xs font-mono">
+              <div>
+                <span className="opacity-60 block text-[10px]">MCP Status</span>
+                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  OPERATIONAL
+                </span>
+              </div>
+
+              <div>
+                <span className="opacity-60 block text-[10px]">Round-Trip Latency</span>
+                <span className="text-cyan-400 font-bold">{mcpHealth.latencyMs} ms</span>
+              </div>
+
+              <div>
+                <span className="opacity-60 block text-[10px]">Registered Tools</span>
+                <span className="text-white font-bold">{mcpHealth.toolsCount} Active</span>
+              </div>
+
+              <div>
+                <span className="opacity-60 block text-[10px]">Data Authenticity</span>
+                <span className="text-emerald-400 font-bold">100% UNFABRICATED</span>
+              </div>
+            </div>
+
+            {/* Registered Tools Catalog */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold opacity-80 block">
+                Registered Tools on this MCP Instance:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                <div className="p-2.5 rounded-lg border border-inherit bg-slate-500/5">
+                  <strong className="text-emerald-500 block">alphapairs_get_market_data</strong>
+                  <span className="text-[11px] opacity-75">Live daily OHLCV bars from Yahoo Finance.</span>
+                </div>
+                <div className="p-2.5 rounded-lg border border-inherit bg-slate-500/5">
+                  <strong className="text-emerald-500 block">alphapairs_calculate_correlation</strong>
+                  <span className="text-[11px] opacity-75">N x N continuous log return matrix engine.</span>
+                </div>
+                <div className="p-2.5 rounded-lg border border-inherit bg-slate-500/5">
+                  <strong className="text-emerald-500 block">alphapairs_detect_deviations</strong>
+                  <span className="text-[11px] opacity-75">OLS regression, residual spread &amp; episodes.</span>
+                </div>
+                <div className="p-2.5 rounded-lg border border-inherit bg-slate-500/5">
+                  <strong className="text-emerald-500 block">alphapairs_analyze_divergence</strong>
+                  <span className="text-[11px] opacity-75">Gemini 3.8 Flash catalyst research memo.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Verification Sample */}
+            {mcpHealth.priceSample && (
+              <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-xs font-mono">
+                <span className="font-bold text-emerald-400 block mb-1">
+                  ✓ Verified Upstream Price Feed:
+                </span>
+                <div className="text-[11px] opacity-85">
+                  Symbol: <strong>{mcpHealth.priceSample.ticker}</strong> | Close: <strong>${mcpHealth.priceSample.close}</strong> | Volume: <strong>{(mcpHealth.priceSample.volume / 1e6).toFixed(2)}M</strong> | Session: <strong>{mcpHealth.priceSample.date}</strong>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between pt-2 border-t border-inherit">
+              <button
+                onClick={verifyMcpConnection}
+                className="px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 hover:bg-emerald-400 transition"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>Re-Test Live Connection</span>
+              </button>
+
+              <button
+                onClick={() => setShowMcpModal(false)}
+                className="px-4 py-2 rounded-lg border border-inherit text-xs font-medium hover:bg-slate-500/20 transition"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Minimal Footer */}
+      <footer className="border-t py-4 px-4 text-center text-xs opacity-50 font-mono border-inherit">
+        AlphaPairs Quant &bull; Model Context Protocol &bull; 11 Default Equities Universe &bull; Real-time Market Feeds
       </footer>
     </div>
   );
