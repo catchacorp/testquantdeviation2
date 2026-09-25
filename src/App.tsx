@@ -50,13 +50,21 @@ export const DEFAULT_UNIVERSE = [
 // Industry recommendation suggestions map
 export const PEER_SUGGESTIONS: Record<string, Array<{ symbol: string; name: string; category: string }>> = {
   NVDA: [
-    { symbol: "AMD", name: "Advanced Micro Devices", category: "GPU & CPU Peer" },
+    { symbol: "VRT", name: "Vertiv Holdings Co", category: "AI Data Center Power & Liquid Cooling" },
+    { symbol: "AMD", name: "Advanced Micro Devices", category: "GPU & CPU Competitor" },
     { symbol: "AVGO", name: "Broadcom Inc.", category: "Custom AI Silicon" },
     { symbol: "MU", name: "Micron Technology", category: "HBM Memory Partner" },
     { symbol: "TSM", name: "Taiwan Semiconductor", category: "Foundry Manufacturer" },
-    { symbol: "INTC", name: "Intel Corporation", category: "Data Center Silicon" },
-    { symbol: "QCOM", name: "Qualcomm Inc.", category: "Edge AI & Mobile Chips" },
-    { symbol: "AMAT", name: "Applied Materials", category: "Chip Equipment" }
+    { symbol: "SMCI", name: "Super Micro Computer", category: "AI Server Architecture" },
+    { symbol: "PLTR", name: "Palantir Technologies", category: "Enterprise AI Platforms" }
+  ],
+  VRT: [
+    { symbol: "NVDA", name: "NVIDIA Corporation", category: "Primary AI Compute Partner" },
+    { symbol: "SMCI", name: "Super Micro Computer", category: "Server Rack Integration" },
+    { symbol: "AVGO", name: "Broadcom Inc.", category: "Data Center Networking Silicon" },
+    { symbol: "MSFT", name: "Microsoft Corp.", category: "Hyperscaler Data Center Customer" },
+    { symbol: "AMZN", name: "Amazon.com (AWS)", category: "Cloud Infrastructure Customer" },
+    { symbol: "ETN", name: "Eaton Corporation", category: "Electrical Power Equipment" }
   ],
   META: [
     { symbol: "GOOGL", name: "Alphabet (Google)", category: "Digital Advertising Duopoly" },
@@ -107,6 +115,7 @@ export const PEER_SUGGESTIONS: Record<string, Array<{ symbol: string; name: stri
   ],
   AVGO: [
     { symbol: "NVDA", name: "NVIDIA Corporation", category: "Data Center Accelerator Ecosystem" },
+    { symbol: "VRT", name: "Vertiv Holdings Co", category: "Data Center Liquid Cooling Partner" },
     { symbol: "MRVL", name: "Marvell Technology", category: "Custom ASIC & Optical Silicon" },
     { symbol: "QCOM", name: "Qualcomm Inc.", category: "Communications Silicon" },
     { symbol: "AMD", name: "Advanced Micro Devices", category: "Data Center Compute" }
@@ -161,11 +170,24 @@ interface RightNowItem {
   plain_english: string;
 }
 
+interface TickerProfile {
+  ticker: string;
+  name: string;
+  sector: string;
+  industry: string;
+  live_price: number;
+  exchange: string;
+  currency?: string;
+}
+
 interface DeviationResult {
   source: string;
   fetched_at: string;
   target: string;
   target_name: string;
+  target_sector?: string;
+  target_industry?: string;
+  target_price?: number;
   peers: string[];
   lookback_days: number;
   z_threshold: number;
@@ -176,6 +198,7 @@ interface DeviationResult {
     r_squared: number;
     residual_std: number;
   };
+  profiles?: Record<string, TickerProfile>;
   right_now: RightNowItem[];
   episodes: Episode[];
   residual_points: ResidualPoint[];
@@ -267,6 +290,10 @@ export default function App() {
   const [showMcpModal, setShowMcpModal] = useState(false);
   const [copiedMcpUrl, setCopiedMcpUrl] = useState(false);
 
+  // Dynamic profiles cache fetched from MCP
+  const [profilesCache, setProfilesCache] = useState<Record<string, TickerProfile>>({});
+  const [addTickerFeedback, setAddTickerFeedback] = useState<string | null>(null);
+
   // Equities Basket State
   // Default Target: NVDA
   const [targetTicker, setTargetTicker] = useState("NVDA");
@@ -308,25 +335,60 @@ export default function App() {
     runDeviationCalculation("NVDA", peerTickers, zThreshold, lookbackDays);
   }, []);
 
-  // Update calculations when target or peers change
+  // Update calculations when target changes
   const handleTargetChange = (newTarget: string) => {
-    const updatedPeers = DEFAULT_UNIVERSE
-      .map(item => item.symbol)
-      .filter(sym => sym !== newTarget);
-    setTargetTicker(newTarget);
+    const cleanNewTarget = newTarget.trim().toUpperCase();
+    // Gather all currently active tickers
+    const allCurrentTickers = Array.from(new Set([targetTicker, ...peerTickers]));
+    const updatedPeers = allCurrentTickers.filter(sym => sym !== cleanNewTarget);
+
+    setTargetTicker(cleanNewTarget);
     setPeerTickers(updatedPeers);
-    runDeviationCalculation(newTarget, updatedPeers, zThreshold, lookbackDays);
+    runDeviationCalculation(cleanNewTarget, updatedPeers, zThreshold, lookbackDays);
   };
 
-  // Add ticker to basket
-  const handleAddTicker = (symbolToAdd: string) => {
+  // Add custom ticker to basket (fetches live profile from MCP)
+  const handleAddTicker = async (symbolToAdd: string) => {
     const clean = symbolToAdd.trim().toUpperCase();
     if (!clean) return;
     if (clean === targetTicker || peerTickers.includes(clean)) {
       setNewTickerInput("");
       return;
     }
-    const updatedPeers = [...peerTickers, clean].slice(0, 12);
+
+    setDevLoading(true);
+    setAddTickerFeedback(`Fetching live MCP data for ${clean}...`);
+
+    // Fetch dynamic profile directly via MCP
+    try {
+      const profRes = await fetch("/api/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: `prof-${Date.now()}`,
+          method: "tools/call",
+          params: {
+            name: "alphapairs_get_ticker_profile",
+            arguments: { ticker: clean }
+          }
+        })
+      });
+
+      if (profRes.ok) {
+        const profJson = await profRes.json();
+        if (!profJson.error && profJson.result?.content?.[0]?.text) {
+          const profile: TickerProfile = JSON.parse(profJson.result.content[0].text);
+          setProfilesCache(prev => ({ ...prev, [clean]: profile }));
+          setAddTickerFeedback(`✓ Added ${clean} (${profile.name}): Live $${profile.live_price} on ${profile.exchange}`);
+          setTimeout(() => setAddTickerFeedback(null), 4000);
+        }
+      }
+    } catch (err) {
+      console.warn("Could not pre-fetch profile, falling back to deviation engine", err);
+    }
+
+    const updatedPeers = [...peerTickers, clean].slice(0, 25);
     setPeerTickers(updatedPeers);
     setNewTickerInput("");
     runDeviationCalculation(targetTicker, updatedPeers, zThreshold, lookbackDays);
@@ -350,7 +412,6 @@ export default function App() {
     setDevLoading(true);
     setDevError(null);
     try {
-      // Execute directly via /api/mcp tools/call
       const res = await fetch("/api/mcp", {
         method: "POST",
         headers: {
@@ -383,8 +444,13 @@ export default function App() {
         throw new Error(msg);
       }
 
-      const data = JSON.parse(json.result.content[0].text);
+      const data: DeviationResult = JSON.parse(json.result.content[0].text);
       setDevResult(data);
+
+      // Merge returned profiles into cache
+      if (data.profiles) {
+        setProfilesCache(prev => ({ ...prev, ...data.profiles }));
+      }
     } catch (err: any) {
       setDevError(err.message);
     } finally {
@@ -479,15 +545,30 @@ export default function App() {
     setTimeout(() => setCopiedMcpUrl(false), 2000);
   };
 
-  // Find target stock info
-  const targetInfo = DEFAULT_UNIVERSE.find(u => u.symbol === targetTicker) || {
-    symbol: targetTicker,
-    name: devResult?.target_name || targetTicker,
-    category: "Selected Equity"
-  };
-
-  // Target RightNow data
+  // Target RightNow item
   const targetRightNow = devResult?.right_now?.find(r => r.ticker === targetTicker);
+
+  // Dynamic live target profile from devResult or cache
+  const targetLiveProfile =
+    devResult?.profiles?.[targetTicker] ||
+    profilesCache[targetTicker] ||
+    (DEFAULT_UNIVERSE.find(u => u.symbol === targetTicker)
+      ? {
+          ticker: targetTicker,
+          name: DEFAULT_UNIVERSE.find(u => u.symbol === targetTicker)!.name,
+          sector: "Information Technology",
+          industry: DEFAULT_UNIVERSE.find(u => u.symbol === targetTicker)!.category,
+          live_price: targetRightNow?.latest_price || 0,
+          exchange: "NASDAQ"
+        }
+      : {
+          ticker: targetTicker,
+          name: devResult?.target_name || targetTicker,
+          sector: devResult?.target_sector || "Technology & Infrastructure",
+          industry: devResult?.target_industry || "AI & Cloud Ecosystem",
+          live_price: devResult?.target_price || targetRightNow?.latest_price || 0,
+          exchange: "US Exchange"
+        });
 
   // Suggested peers for current target
   const suggestions = PEER_SUGGESTIONS[targetTicker] || PEER_SUGGESTIONS["NVDA"];
@@ -519,6 +600,9 @@ export default function App() {
                 <span className="font-bold text-base tracking-tight">AlphaPairs</span>
                 <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
                   DEVIATION QUANT
+                </span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 hidden sm:inline">
+                  LIVE MCP FEEDS
                 </span>
               </div>
               <p className="text-[11px] opacity-60">
@@ -588,6 +672,19 @@ export default function App() {
           </div>
         </div>
 
+        {/* Feedback Alert Banner */}
+        {addTickerFeedback && (
+          <div className="border-t border-emerald-500/30 bg-emerald-950/40 px-4 py-1.5 text-xs font-mono text-emerald-300 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+              <span>{addTickerFeedback}</span>
+            </div>
+            <button onClick={() => setAddTickerFeedback(null)} className="opacity-60 hover:opacity-100">
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+
         {/* NAVIGATION TABS */}
         <div className="max-w-7xl mx-auto px-4 flex border-t overflow-x-auto text-xs font-medium border-inherit">
           <button
@@ -637,7 +734,7 @@ export default function App() {
             <span>Why These Peers?</span>
             <GrandmaTooltip
               title="Peer Rationale"
-              grandmaText="Explains why these 11 companies are in the same club, how they sell to each other, and why their prices move together."
+              grandmaText="Explains why these companies are in the same club, how they sell to each other, and why their prices move together."
             />
           </button>
 
@@ -645,7 +742,6 @@ export default function App() {
             onClick={() => {
               setActiveTab("correlation");
               if (!corrResult) {
-                // Calculate correlation for the current basket
                 fetch("/api/mcp", {
                   method: "POST",
                   headers: { "Content-Type": "application/json", "Accept": "application/json" },
@@ -655,7 +751,7 @@ export default function App() {
                     method: "tools/call",
                     params: {
                       name: "alphapairs_calculate_correlation",
-                      arguments: { tickers: [targetTicker, ...peerTickers].slice(0, 10), lookback_days: 60 }
+                      arguments: { tickers: [targetTicker, ...peerTickers].slice(0, 15), lookback_days: 60 }
                     }
                   })
                 })
@@ -701,6 +797,9 @@ export default function App() {
                   <Target className="h-3.5 w-3.5" />
                   Target Equity (Focus)
                 </span>
+                <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                  Live MCP Feed
+                </span>
                 <GrandmaTooltip
                   title="Target Equity"
                   grandmaText="This is our main company of interest. We track its every step against all its competitors."
@@ -709,25 +808,27 @@ export default function App() {
               </div>
 
               <span className="text-xs font-mono opacity-70">
-                Industry: {targetInfo.category}
+                {targetLiveProfile.exchange}
               </span>
             </div>
 
-            {/* Giant Ticker & Name */}
+            {/* Giant Ticker, Real-time Price & Dynamic Company Name */}
             <div className="my-2">
-              <div className="flex items-baseline gap-3 flex-wrap">
+              <div className="flex items-baseline gap-4 flex-wrap">
                 <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-emerald-500 font-mono">
                   {targetTicker}
                 </h1>
-                {targetRightNow && (
-                  <span className="text-3xl sm:text-4xl font-mono font-bold">
-                    ${targetRightNow.latest_price.toFixed(2)}
-                  </span>
-                )}
+                <span className="text-3xl sm:text-4xl font-mono font-bold">
+                  ${(targetLiveProfile.live_price || targetRightNow?.latest_price || devResult?.target_price || 0).toFixed(2)}
+                </span>
               </div>
-              <h2 className="text-lg font-bold opacity-90 mt-1">
-                {targetInfo.name}
+              <h2 className="text-lg font-bold opacity-95 mt-1">
+                {targetLiveProfile.name}
               </h2>
+              {/* Sector & Industry Description */}
+              <p className="text-xs font-medium text-emerald-400/90 mt-1 font-mono">
+                {targetLiveProfile.sector} &bull; {targetLiveProfile.industry}
+              </p>
             </div>
 
             {/* Key Metrics Strip (Moving Average, Regression Beta, 5-Day Change) */}
@@ -774,21 +875,21 @@ export default function App() {
 
             {/* Quick Target Switcher Dropdown */}
             <div className="pt-3 border-t border-inherit flex items-center justify-between gap-3 text-xs">
-              <span className="opacity-70 font-medium">Switch Target Equity:</span>
+              <span className="opacity-70 font-medium">Switch Target:</span>
               <div className="flex gap-1 overflow-x-auto py-1">
-                {DEFAULT_UNIVERSE.slice(0, 6).map(u => (
+                {Array.from(new Set([targetTicker, ...peerTickers])).slice(0, 7).map(sym => (
                   <button
-                    key={u.symbol}
-                    onClick={() => handleTargetChange(u.symbol)}
+                    key={sym}
+                    onClick={() => handleTargetChange(sym)}
                     className={`px-2 py-1 rounded text-xs font-mono font-bold transition ${
-                      targetTicker === u.symbol
+                      targetTicker === sym
                         ? "bg-emerald-500 text-slate-950"
                         : isDarkMode
                         ? "bg-slate-800 text-slate-300 hover:bg-slate-700"
                         : "bg-slate-200 text-slate-700 hover:bg-slate-300"
                     }`}
                   >
-                    {u.symbol}
+                    {sym}
                   </button>
                 ))}
               </div>
@@ -816,46 +917,68 @@ export default function App() {
                   />
                 </div>
                 <span className="text-[11px] opacity-60 font-mono">
-                  Default: Tech Megacaps
+                  Up to 25 Peer Equities
                 </span>
               </div>
 
-              {/* Peer Chips Grid */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {peerTickers.map(peer => (
-                  <div
-                    key={peer}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono font-bold transition ${
-                      isDarkMode
-                        ? "bg-slate-950 border-slate-800 text-slate-200 hover:border-slate-700"
-                        : "bg-slate-100 border-slate-200 text-slate-800 hover:border-slate-300"
-                    }`}
-                  >
-                    <span>{peer}</span>
-                    <button
-                      onClick={() => handleTargetChange(peer)}
-                      className="text-[10px] text-emerald-500 hover:underline"
-                      title="Set as Target Equity"
+              {/* Peer Chips Grid with Real Live Prices */}
+              <div className="flex flex-wrap gap-2 mb-4 max-h-48 overflow-y-auto pr-1">
+                {peerTickers.map(peer => {
+                  const peerProfile = devResult?.profiles?.[peer] || profilesCache[peer];
+                  const peerRightNow = devResult?.right_now?.find(r => r.ticker === peer);
+                  const displayPrice = peerProfile?.live_price || (peerProfile as any)?.price || peerRightNow?.latest_price;
+
+                  return (
+                    <div
+                      key={peer}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono transition ${
+                        isDarkMode
+                          ? "bg-slate-950 border-slate-800 text-slate-200 hover:border-slate-700"
+                          : "bg-slate-100 border-slate-200 text-slate-800 hover:border-slate-300"
+                      }`}
                     >
-                      (Make Target)
-                    </button>
-                    {peerTickers.length > 2 && (
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold">{peer}</span>
+                          {displayPrice != null && (
+                            <span className="text-emerald-400 font-bold text-[11px]">
+                              ${displayPrice.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                        {peerProfile?.name && (
+                          <span className="text-[10px] opacity-60 truncate max-w-[120px]">
+                            {peerProfile.name}
+                          </span>
+                        )}
+                      </div>
+
                       <button
-                        onClick={() => handleRemovePeer(peer)}
-                        className="text-slate-400 hover:text-rose-500 ml-1"
-                        title="Remove peer"
+                        onClick={() => handleTargetChange(peer)}
+                        className="text-[10px] text-emerald-500 hover:underline px-1 py-0.5 rounded bg-emerald-500/10"
+                        title="Set as Target Equity"
                       >
-                        <X className="h-3 w-3" />
+                        Target
                       </button>
-                    )}
-                  </div>
-                ))}
+
+                      {peerTickers.length > 2 && (
+                        <button
+                          onClick={() => handleRemovePeer(peer)}
+                          className="text-slate-400 hover:text-rose-500 ml-0.5"
+                          title="Remove peer"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Add Custom Ticker Input */}
               <div className="mb-4">
                 <label className="block text-xs font-medium opacity-80 mb-1.5">
-                  Enter individual stock ticker to add:
+                  Enter individual stock ticker to add (e.g. VRT, PLTR, ARM, SMCI):
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -865,7 +988,7 @@ export default function App() {
                     onKeyDown={e => {
                       if (e.key === "Enter") handleAddTicker(newTickerInput);
                     }}
-                    placeholder="e.g. TSM, INTC, CRM, QCOM"
+                    placeholder="Enter ticker (e.g. VRT)"
                     className={`flex-1 px-3 py-2 rounded-lg border text-xs font-mono focus:outline-none focus:border-emerald-500 ${
                       isDarkMode
                         ? "bg-slate-950 border-slate-800 text-white"
@@ -874,10 +997,11 @@ export default function App() {
                   />
                   <button
                     onClick={() => handleAddTicker(newTickerInput)}
-                    className="px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-1 hover:bg-emerald-400 transition cursor-pointer"
+                    disabled={devLoading}
+                    className="px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-1 hover:bg-emerald-400 transition cursor-pointer disabled:opacity-50"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    <span>Add</span>
+                    <span>Add to Basket</span>
                   </button>
                 </div>
               </div>
@@ -885,7 +1009,7 @@ export default function App() {
               {/* Industry Peer Suggestions */}
               <div>
                 <span className="block text-[11px] font-medium opacity-70 mb-2">
-                  Suggested similar category stocks for {targetTicker}:
+                  Suggested similar category peers for {targetTicker}:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {suggestions.map(s => {
@@ -904,7 +1028,7 @@ export default function App() {
                         }`}
                         title={s.category}
                       >
-                        <span className="font-mono font-bold">{s.symbol}</span>{" "}
+                        <span className="font-mono font-bold text-emerald-400">+{s.symbol}</span>{" "}
                         <span className="text-[10px] opacity-75">({s.name.split(" ")[0]})</span>
                       </button>
                     );
@@ -959,7 +1083,7 @@ export default function App() {
                 className="px-3 py-1 rounded bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition text-xs flex items-center gap-1"
               >
                 <RefreshCw className={`h-3 w-3 ${devLoading ? "animate-spin" : ""}`} />
-                <span>Re-Analyze</span>
+                <span>Re-Analyze via MCP</span>
               </button>
             </div>
           </div>
@@ -990,7 +1114,7 @@ export default function App() {
             </div>
 
             <div className="text-xs font-mono opacity-70">
-              Session: {devResult?.latest_date || "Live Session"} &bull; Engine: {devResult?.source}
+              Session: {devResult?.latest_date || "Live Session"} &bull; Upstream: Yahoo Finance Live Feeds
             </div>
           </div>
 
@@ -1033,7 +1157,7 @@ export default function App() {
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] opacity-70 block truncate max-w-[180px]">
+                        <span className="text-[11px] opacity-75 block truncate max-w-[200px] font-medium">
                           {item.company_name}
                         </span>
                       </div>
@@ -1056,7 +1180,7 @@ export default function App() {
                     <div className="flex items-baseline justify-between py-2 border-y border-inherit text-xs font-mono">
                       <div>
                         <span className="opacity-60 block text-[10px]">Price</span>
-                        <span className="font-bold text-sm">${item.latest_price.toFixed(2)}</span>
+                        <span className="font-bold text-sm text-emerald-400">${item.latest_price.toFixed(2)}</span>
                       </div>
 
                       <div>
@@ -1137,14 +1261,10 @@ export default function App() {
               }`}
             >
               <svg className="w-full h-full" viewBox="0 0 800 200" preserveAspectRatio="none">
-                {/* Center Baseline */}
                 <line x1="0" y1="100" x2="800" y2="100" stroke={isDarkMode ? "#334155" : "#cbd5e1"} strokeWidth="1.5" strokeDasharray="3 3" />
-                {/* +Threshold Band */}
                 <line x1="0" y1={100 - (zThreshold * 25)} x2="800" y2={100 - (zThreshold * 25)} stroke="#ef4444" strokeWidth="1" strokeDasharray="4 4" opacity="0.6" />
-                {/* -Threshold Band */}
                 <line x1="0" y1={100 + (zThreshold * 25)} x2="800" y2={100 + (zThreshold * 25)} stroke="#10b981" strokeWidth="1" strokeDasharray="4 4" opacity="0.6" />
 
-                {/* Polyline */}
                 {devResult?.residual_points && devResult.residual_points.length > 1 && (
                   <polyline
                     fill="none"
@@ -1161,8 +1281,7 @@ export default function App() {
                   />
                 )}
 
-                {/* Data Points */}
-                {devResult?.residual_points.map((p, idx) => {
+                {devResult?.residual_points?.map((p, idx) => {
                   const x = (idx / (devResult.residual_points.length - 1)) * 760 + 20;
                   const clampedZ = Math.max(-3.5, Math.min(3.5, p.z_score));
                   const y = 100 - (clampedZ * 25);
@@ -1307,11 +1426,11 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <Info className="h-5 w-5 text-cyan-500" />
                 <h2 className="text-xl font-bold tracking-tight">
-                  Why is {targetTicker} Grouped with These Peers?
+                  Why is {targetTicker} ({targetLiveProfile.name}) Grouped with These Peers?
                 </h2>
                 <GrandmaTooltip
                   title="Grouping Rationale"
-                  grandmaText="Just like how bakers all care about the price of flour and eggs, these tech companies are tied together because they buy chips, software, and cloud services from one another."
+                  grandmaText="Just like how bakers all care about the price of flour and eggs, these tech companies are tied together because they buy chips, software, power, and cloud services from one another."
                 />
               </div>
               <p className="text-xs opacity-65 mt-1">
@@ -1326,16 +1445,16 @@ export default function App() {
                 }`}
               >
                 <h3 className="font-bold text-sm text-emerald-500 mb-2 flex items-center gap-1.5">
-                  <span>1. The AI Infrastructure Ecosystem Loop</span>
+                  <span>1. Critical AI Infrastructure Interdependency</span>
                 </h3>
                 <p className="opacity-85 mb-3">
-                  <strong>Nvidia, Broadcom, and AMD</strong> supply the hardware accelerators and networking fabric.
-                  <strong> Meta, Microsoft, Amazon, and Google</strong> are their single largest customers, purchasing tens of billions
-                  of dollars worth of GPUs annually to train frontier AI models.
+                  <strong>Vertiv Holdings (VRT)</strong> produces high-density liquid cooling units (Liebert) and uninterruptible power systems.
+                  Every frontier AI data center cluster deployed by <strong>Microsoft, Meta, Amazon, and Google</strong> using{" "}
+                  <strong>Nvidia (GB200) and AMD (MI300)</strong> accelerators requires massive electrical power and liquid cooling to prevent thermal shutdown.
                 </p>
                 <p className="opacity-85">
-                  When Microsoft or Meta announces capital expenditure growth, it directly pumps revenue into Nvidia, Broadcom, and Micron.
-                  Therefore, institutional quant algorithms trade them as a synchronized co-integrated block.
+                  When hyperscalers accelerate data center CapEx, Nvidia ships GPUs, Broadcom connects the network, and Vertiv cools the servers.
+                  They share identical macroeconomic revenue drivers.
                 </p>
               </div>
 
@@ -1345,16 +1464,15 @@ export default function App() {
                 }`}
               >
                 <h3 className="font-bold text-sm text-cyan-500 mb-2 flex items-center gap-1.5">
-                  <span>2. Mutual Supply Chain Dependencies</span>
+                  <span>2. Supply Chain Bottlenecks &amp; Delivery Cycles</span>
                 </h3>
                 <p className="opacity-85 mb-3">
-                  <strong>Micron Technology (MU)</strong> manufactures High Bandwidth Memory (HBM3e) which is physically packaged onto
-                  every Nvidia and AMD AI chip.
-                  <strong> Broadcom (AVGO)</strong> provides the high-speed Ethernet switches that connect tens of thousands of GPUs together.
+                  <strong>Micron Technology (MU)</strong> packages HBM3e directly onto Nvidia accelerators, while <strong>Broadcom (AVGO)</strong> provides
+                  custom ASICs and optical transceivers. <strong>Vertiv (VRT)</strong> coordinates closely with server architects (Supermicro, Dell)
+                  to build pre-fabricated modular power rooms.
                 </p>
                 <p className="opacity-85">
-                  If Micron or Broadcom hits a bottleneck, Nvidia and AMD cannot ship. If Nvidia slows, Micron feels it immediately.
-                  This physical dependency guarantees mathematical correlation.
+                  A delay in cooling delivery halts GPU cluster deployment, directly linking Vertiv's operational performance to the broader semiconductor group.
                 </p>
               </div>
 
@@ -1364,12 +1482,11 @@ export default function App() {
                 }`}
               >
                 <h3 className="font-bold text-sm text-amber-500 mb-2 flex items-center gap-1.5">
-                  <span>3. Shared Macro Factors (Interest Rates &amp; Nasdaq Indexation)</span>
+                  <span>3. Shared Macro Factors (Interest Rates &amp; Index Baskets)</span>
                 </h3>
                 <p className="opacity-85">
-                  All 11 of these companies are major constituents of the Nasdaq-100 (QQQ), S&amp;P 500 (SPY), and Semiconductor ETF (SMH).
-                  When global pension funds buy or sell broad index baskets, money flows in and out of all 11 stocks simultaneously,
-                  giving them high structural baseline co-movement.
+                  These stocks are key holdings across institutional tech, AI, and infrastructure ETFs (including SMH, QQQ, and XLI).
+                  Algorithmic trading desks execute automated basket orders, causing structural price co-movement and tight baseline cointegration.
                 </p>
               </div>
 
@@ -1379,12 +1496,12 @@ export default function App() {
                 }`}
               >
                 <h3 className="font-bold text-sm text-purple-500 mb-2 flex items-center gap-1.5">
-                  <span>4. Why Divergences Present Trading Opportunities</span>
+                  <span>4. Statistical Divergence &amp; Mean-Reversion Mechanics</span>
                 </h3>
                 <p className="opacity-85">
-                  Because their fundamentals are tightly interwoven, whenever one stock decouples (due to short-term news, quarterly guidance panic, or options positioning),
-                  the statistical rubber band stretches. In over 80% of historical episodes, the spread eventually snaps back (mean-reverts)
-                  to the group trend line.
+                  Because their end-market demand is unified, temporary dislocations caused by quarterly earnings beats, product delays,
+                  or analyst downgrades create high-probability statistical arbitrage opportunities. When a stock lags behind its peer group by &gt; 1.5&sigma;,
+                  it frequently snaps back to rejoin the trend.
                 </p>
               </div>
             </div>
@@ -1514,6 +1631,10 @@ export default function App() {
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
                 <div className="p-2.5 rounded-lg border border-inherit bg-slate-500/5">
+                  <strong className="text-emerald-500 block">alphapairs_get_ticker_profile</strong>
+                  <span className="text-[11px] opacity-75">Live company profile, name, sector &amp; live price.</span>
+                </div>
+                <div className="p-2.5 rounded-lg border border-inherit bg-slate-500/5">
                   <strong className="text-emerald-500 block">alphapairs_get_market_data</strong>
                   <span className="text-[11px] opacity-75">Live daily OHLCV bars from Yahoo Finance.</span>
                 </div>
@@ -1524,10 +1645,6 @@ export default function App() {
                 <div className="p-2.5 rounded-lg border border-inherit bg-slate-500/5">
                   <strong className="text-emerald-500 block">alphapairs_detect_deviations</strong>
                   <span className="text-[11px] opacity-75">OLS regression, residual spread &amp; episodes.</span>
-                </div>
-                <div className="p-2.5 rounded-lg border border-inherit bg-slate-500/5">
-                  <strong className="text-emerald-500 block">alphapairs_analyze_divergence</strong>
-                  <span className="text-[11px] opacity-75">Gemini 3.8 Flash catalyst research memo.</span>
                 </div>
               </div>
             </div>
@@ -1567,7 +1684,7 @@ export default function App() {
 
       {/* Minimal Footer */}
       <footer className="border-t py-4 px-4 text-center text-xs opacity-50 font-mono border-inherit">
-        AlphaPairs Quant &bull; Model Context Protocol &bull; 11 Default Equities Universe &bull; Real-time Market Feeds
+        AlphaPairs Quant &bull; Model Context Protocol &bull; Dynamic Live Exchange Feeds &bull; Real-time Market Data
       </footer>
     </div>
   );
