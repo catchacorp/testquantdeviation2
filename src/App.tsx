@@ -250,16 +250,26 @@ function GrandmaTooltip({
 
   return (
     <span className="relative inline-flex items-center ml-1 align-baseline">
-      <button
-        type="button"
+      <span
+        role="button"
+        tabIndex={0}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
-        onClick={() => setOpen(!open)}
-        className="h-4 w-4 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-slate-950 flex items-center justify-center text-[10px] font-bold cursor-help transition border border-amber-500/40"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.stopPropagation();
+            setOpen(!open);
+          }
+        }}
+        className="h-4 w-4 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-slate-950 flex items-center justify-center text-[10px] font-bold cursor-help transition border border-amber-500/40 select-none"
         aria-label={`Explain ${title}`}
       >
         ?
-      </button>
+      </span>
 
       {open && (
         <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-amber-500/60 text-xs leading-relaxed pointer-events-none text-left">
