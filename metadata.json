@@ -1,0 +1,6 @@
+{
+  "name": "AlphaPairs Quant & MCP Server",
+  "description": "Institutional statistical arbitrage deviation tracking, Pearson logarithmic correlation matrix, OLS residual spread analytics, and MCP protocol server for quantitative agents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
